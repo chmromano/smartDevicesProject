@@ -29,6 +29,7 @@
     </p>
 */
 #include "chris.h"
+#include "alex.h"
 /**
  * @file    main.c
  * @brief   
