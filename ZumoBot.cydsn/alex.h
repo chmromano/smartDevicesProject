@@ -27,4 +27,16 @@
 #include <sys/time.h>
 #include "serial1.h"
 #include <unistd.h>
+#include <stdlib.h>
+
+
+void tank_turn(int8 speed, uint32 delay);
+void tank_leftturn90();
+void tank_rightturn90();
+void tank_leftturn270();
+void tank_rightturn270();
+void tank_turn180();
+void motor_littleback();
+void tank_randomturn();
+void motor_forward50();
 /* [] END OF FILE */
