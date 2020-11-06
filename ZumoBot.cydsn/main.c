@@ -38,7 +38,7 @@
 */
 
 
-#if 1
+#if 0
 // Hello World!
 void zmain(void)
 {
