@@ -27,4 +27,7 @@
 #include <sys/time.h>
 #include "serial1.h"
 #include <unistd.h>
+
+void right_turn(int radius);
+void left_turn(int radius);
 /* [] END OF FILE */

@@ -11,16 +11,29 @@
 */
 #include "chris.h"
 
+//Premade function for a 120 degree left turn
+void right_turn(int radius){
+    int delay_value = (5986 * radius)/360;
+    motor_turn(50, 15, delay_value);
+}
+
+//Premade function for a 120 degree left turn
+void left_turn(int radius){
+    int delay_value = (5986 * radius)/360;
+    motor_turn(15, 50, delay_value);
+}
+
 #if 0
 //Function for week 3 assignment 2
 #endif
 
 #if 1
 //function to test turns
-//motor_turn(100, 30, 2993); gives a 360 degree turn
+//motor_turn(50, 15, 5986); gives a roughly 360 degree turn
 void zmain(void){
     motor_start();
-    motor_turn(10, 3, 2993);
+    right_turn(90);
+    left_turn(180);
     motor_stop();
     
     while(true)
