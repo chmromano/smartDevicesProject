@@ -11,13 +11,13 @@
 */
 #include "chris.h"
 
-//Premade function for a 120 degree left turn
+//Premade function for a right turn with radius as parameter
 void right_turn(int radius){
     int delay_value = (5986 * radius)/360;
     motor_turn(50, 15, delay_value);
 }
 
-//Premade function for a 120 degree left turn
+//Premade function for a left turn with radius as parameter
 void left_turn(int radius){
     int delay_value = (5986 * radius)/360;
     motor_turn(15, 50, delay_value);

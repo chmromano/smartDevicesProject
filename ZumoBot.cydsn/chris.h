@@ -28,6 +28,8 @@
 #include "serial1.h"
 #include <unistd.h>
 
+//Premade function for a right turn with radius as parameter
 void right_turn(int radius);
+//Premade function for a left turn with radius as parameter
 void left_turn(int radius);
 /* [] END OF FILE */
