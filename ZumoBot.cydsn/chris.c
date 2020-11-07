@@ -9,6 +9,14 @@
  *
  * ========================================
 */
+
+/*========================================
+
+GENERAL INFORMATION AND DOCUMENTATION
+
+motor_turn(50, 15, 5986); gives a roughly 360 degree turn
+
+========================================*/
 #include "chris.h"
 
 //Premade function for a right turn with radius as parameter
@@ -23,17 +31,36 @@ void left_turn(int radius){
     motor_turn(15, 50, delay_value);
 }
 
-#if 0
+#if 1
 //Function for week 3 assignment 2
+void zmain(void)
+{
+    motor_start();
+    Ultra_Start();
+    vTaskDelay(100);
+    
+    while(true){
+        int distance = Ultra_GetDistance();
+        motor_forward(25,1);
+        if(distance < 10){
+            motor_forward(0, 250);
+            motor_backward(25,1400);
+            motor_forward(0, 250);
+            left_turn(120);
+        }
+        if(distance !=  Ultra_GetDistance()){
+            printf("Distance = %d\n", distance);
+        }
+    }
+}
 #endif
 
-#if 1
-//function to test turns
-//motor_turn(50, 15, 5986); gives a roughly 360 degree turn
-void zmain(void){
+#if 0
+//function to test things
+
+void zmain(void)
+{
     motor_start();
-    right_turn(90);
-    left_turn(180);
     motor_stop();
     
     while(true)
