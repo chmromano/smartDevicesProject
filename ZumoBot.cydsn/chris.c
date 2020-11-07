@@ -35,19 +35,24 @@ void left_turn(int radius){
 //Function for week 3 assignment 2
 void zmain(void)
 {
+    //Starting motor and ultrasonic sensor
     motor_start();
     Ultra_Start();
+    //Allows first distance reading to be !=0
     vTaskDelay(100);
     
+    //Allows functions to be executed indefinitely
     while(true){
         int distance = Ultra_GetDistance();
         motor_forward(25,1);
+        //Performs required actions when distance is short enough
         if(distance < 10){
             motor_forward(0, 250);
             motor_backward(25,1400);
             motor_forward(0, 250);
             left_turn(120);
         }
+        //Prints to console only if distance changes to prevent console spamming
         if(distance !=  Ultra_GetDistance()){
             printf("Distance = %d\n", distance);
         }
