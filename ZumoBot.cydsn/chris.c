@@ -16,7 +16,7 @@ GENERAL INFORMATION AND DOCUMENTATION
 
 motor_turn(50, 15, 5986); gives a roughly 360 degree turn
 
-========================================*/
+==========================================*/
 #include "chris.h"
 
 //Premade function for a right turn with radius as parameter
@@ -44,7 +44,7 @@ void zmain(void)
     //Allows functions to be executed indefinitely
     while(true){
         int distance = Ultra_GetDistance();
-        motor_forward(25,1);
+        motor_forward(25,0);
         //Performs required actions when distance is short enough
         if(distance < 10){
             motor_forward(0, 250);
@@ -66,6 +66,9 @@ void zmain(void)
 void zmain(void)
 {
     motor_start();
+    while(true){
+        motor_turn(10,0,0);
+    }
     motor_stop();
     
     while(true)
