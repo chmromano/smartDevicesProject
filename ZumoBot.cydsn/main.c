@@ -36,9 +36,7 @@
  * @brief   
  * @details  ** Enable global interrupt since Zumo library uses interrupts. **<br>&nbsp;&nbsp;&nbsp;CyGlobalIntEnable;<br>
 */
-
-
-#if 1
+#if 0
 // Hello World!
 void zmain(void)
 {
