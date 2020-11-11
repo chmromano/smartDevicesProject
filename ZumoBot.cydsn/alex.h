@@ -29,14 +29,24 @@
 #include <unistd.h>
 #include <stdlib.h>
 
-
+// tank turn
 void tank_turn(int8 speed, uint32 delay);
+//left 90 degree tank turn
 void tank_leftturn90();
+//right 90 degree tank turn
 void tank_rightturn90();
+//left 270 degree tank turn
 void tank_leftturn270();
+//right 270 degree tank turn
 void tank_rightturn270();
+//180 degree tank turn
 void tank_turn180();
+// tank moving little back
 void motor_littleback();
+// tank randomtrunturn
 void tank_randomturn();
+// tank moving foward at speed of 50
 void motor_forward50();
+
+
 /* [] END OF FILE */
