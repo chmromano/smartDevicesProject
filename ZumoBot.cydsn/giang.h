@@ -27,4 +27,12 @@
 #include <sys/time.h>
 #include "serial1.h"
 #include <unistd.h>
+
+/*
+#ifndef STOP
+#define STOP
+void senor_robot_straight_map(void);
+#endif
+*/
+
 /* [] END OF FILE */

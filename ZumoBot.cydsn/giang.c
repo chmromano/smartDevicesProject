@@ -12,6 +12,115 @@
 #include "giang.h"
 
 #if 0
+    
+// Assignemnt 1 week 4 Robot sensor go straight line
+
+#define STOP 5
+
+void zmain(void)
+{
+    struct sensors_ dig;             //call function sensor
+    int count = 0;
+    
+    reflectance_set_threshold(10000, 10000, 10000, 10000, 10000, 10000);       //set sensor threshold all to 10000
+    
+    reflectance_start();            //start reflectance sensor
+    IR_Start();                     //start IR receiver
+    motor_start();                  //start motor
+    motor_forward(0,0);             //not move yet
+    
+    while(SW1_Read());
+    BatteryLed_Write(1);            //led on
+    vTaskDelay(2000);               //delay 2s
+    BatteryLed_Write(0);            //led off
+    
+    reflectance_digital(&dig);      //Making Reflectance Sensor's period to digital
+    motor_forward(70,0);           //Moving forward
+    printf("Start\n");
+    
+    //loop until line counting = numbers of stop
+    //continue moving forward and counting when all sensors on black area (1)
+    
+    while(count < STOP)             
+    {
+        reflectance_digital(&dig);
+        if (dig.R1 == 1 && dig.R2 == 1 && dig.R3 == 1 && dig.L1 == 1 && dig.L2 == 1 && dig.L3 == 1)
+        {
+            count++;
+            
+            while((dig.R1 == 1 && dig.R2 == 1 && dig.R3 == 1 && dig.L1 == 1 && dig.L2 == 1 && dig.L3 == 1) && count < STOP)
+            {
+                reflectance_digital(&dig);
+            }
+        }
+    }
+    
+    motor_forward(0,0);         //robot stops moving
+    printf("End\n");
+    motor_stop();
+    
+     while(true)
+    {
+        vTaskDelay(100);
+    }
+}
+
+#endif
+/*    
+// Testing another way to edit codes in personal file (Assignemnt 1 week 4)
+
+#define STOP 5
+
+void senor_robot_straight_map(void)
+{
+    struct sensors_ dig;             //call function sensor
+    int count = 0;
+    
+    reflectance_set_threshold(10000, 10000, 10000, 10000, 10000, 10000);       //set sensor threshold all to 10000
+    
+    reflectance_start();            //start reflectance sensor
+    IR_Start();                     //start IR receiver
+    motor_start();                  //start motor
+    motor_forward(0,0);             //not move yet
+    
+    while(SW1_Read());
+    BatteryLed_Write(1);            //led on
+    vTaskDelay(2000);               //delay 2s
+    BatteryLed_Write(0);            //led off
+    
+    reflectance_digital(&dig);      //Making Reflectance Sensor's period to digital
+    motor_forward(70,0);           //Moving forward
+    printf("Start\n");
+    
+    //loop until line counting = numbers of stop
+    //continue moving forward and counting when all sensors on black area (1)
+    
+    while(count < STOP)             
+    {
+        reflectance_digital(&dig);
+        if (dig.R1 == 1 && dig.R2 == 1 && dig.R3 == 1 && dig.L1 == 1 && dig.L2 == 1 && dig.L3 == 1)
+        {
+            count++;
+            
+            while((dig.R1 == 1 && dig.R2 == 1 && dig.R3 == 1 && dig.L1 == 1 && dig.L2 == 1 && dig.L3 == 1) && count < STOP)
+            {
+                reflectance_digital(&dig);
+            }
+        }
+    }
+    
+    motor_forward(0,0);         //robot stops moving
+    printf("End\n");
+    motor_stop();
+    
+     while(true)
+    {
+        vTaskDelay(100);
+    }
+}
+*/
+
+#if 0
 // Assignment 1 week 3 Robot run on floor
     
 void zmain(void)
@@ -42,34 +151,8 @@ void zmain(void)
     {
         vTaskDelay(100); // sleep (in an infinite loop)
     }
- }   
+}   
 #endif
 
-#if 0
-// Example
-void zmain(void)
-{
-    printf("\nHello\n");
-    
-    motor_start();
-    motor_forward(0,0);
-    
-    vTaskDelay(3000);
-    
-    motor_forward(100,2000);
-    motor_turn(200,50,2000);
-    motor_turn(50,200,2000);
-    motor_backward(100,2000);
-    
-    motor_forward(0,0);
-    
-    motor_stop();
-
-    while(true)
-    {
-        vTaskDelay(100); // sleep (in an infinite loop)
-    }
- }   
-#endif
 
 /* [] END OF FILE */

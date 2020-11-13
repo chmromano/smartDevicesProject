@@ -31,7 +31,7 @@ void left_turn(int radius){
     motor_turn(15, 50, delay_value);
 }
 
-#if 1
+#if 0
 //Function for week 3 assignment 2
 void zmain(void)
 {
