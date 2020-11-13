@@ -198,28 +198,48 @@ void zmain (void)
 }
 #endif
 //week 3 assignment 3
-#if 0
+#if 1
 int zmain (void)
 {
     motor_start();
-    Ultra_Start();
+    Ultra_Start();        //initiate ultrasonic sensor
     vTaskDelay(1000);
     
+    printf("Please press start button\n");
+    while(SW1_Read());    //wait for start button to be pressed
+    srand(xTaskGetTickCount());   //creat a seed by using the time that recorded by "xTaskGetTickCount()" for random number generating function "rand()"
     
-    while(true) {
-        int d = Ultra_GetDistance();
-        if (d>10) {
-        motor_forward50();
+    
+    
+    
+    while(true) {        
+    int d = Ultra_GetDistance();    // d=the distance detected by ultrasonic sensor
+    if (d>10) {             //move forward when distance is greater than 10
+        motor_forward(100,0);
          
     }
-    else {
+    else {                   //back ward and do a "tank" turn 
         motor_littleback();
-        tank_randomturn();
-        motor_forward50();
+        int n = rand() % 181 + 90; //generate a random number n which is between 90-270
+        SetMotors(0,1, 25, 25, n*11.6);//motor do a tank turn(The left and right wheels turn in different directions) at random degree between 90-270, the number 11.6 is the time of delay that motor could turn 1 degree at speed of 25
+        motor_forward(100,0);
     }
-        printf("distance = %d\r\n", d);
+        printf("distance = %d\r\n", d);    
         vTaskDelay(200);
     }  
+}
+#endif
+
+#if 0
+void zmain(void) 
+{
+   
+    while(SW1_Read());
+    srand(xTaskGetTickCount());
+    int n = rand() % 2;
+    printf("%d",n);
+
+
 }
 #endif
 
@@ -266,7 +286,8 @@ void motor_littleback(void)
 // tank randomtrunturn
 void tank_randomturn(void)
 {
-    srand((unsigned)time(NULL));
+    while(SW1_Read());
+    srand(xTaskGetTickCount());
     int n = rand() % 2;
     if (n==0) {
         tank_leftturn90();
