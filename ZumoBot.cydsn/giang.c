@@ -13,6 +13,86 @@
 
 #if 0
     
+// Assignemnt 2 week 4 Robot sensor following line
+
+#define STOP 2
+
+void zmain(void)
+{
+    struct sensors_ dig;             //call function sensor
+    int count = 0;
+    
+    reflectance_set_threshold(10000, 10000, 10000, 10000, 10000, 10000);       //set sensor threshold all to 10000
+    
+    reflectance_start();            //start reflectance sensor
+    IR_Start();                     //start IR receiver
+    motor_start();                  //start motor
+    motor_forward(0,0);             //not move yet
+    
+    while(SW1_Read());
+    BatteryLed_Write(1);            //led on
+    vTaskDelay(2000);               //delay 2s
+    BatteryLed_Write(0);            //led off
+    
+    reflectance_digital(&dig);      //Making Reflectance Sensor's period to digital
+    motor_forward(70,0);           //Moving forward
+    printf("Start\n");
+    
+    //loop until line counting = numbers of stop
+    //follow the line when 2 inside sensor on black area 
+    //stop when count equal stop means all sensors on black area
+    
+    //when R1, R2 is 1, go straight
+    //when R2 is 1, turn right until return to 0
+    //when L2 is 1, turn left until return to 0
+    
+    while(count < STOP)             
+    {
+        reflectance_digital(&dig);
+        
+        if (dig.R1 == 1 && dig.R2 == 1 && dig.R3 == 1 && dig.L1 == 1 && dig.L2 == 1 && dig.L3 == 1)
+        {
+            count++;
+            
+            while((dig.R1 == 1 && dig.R2 == 1 && dig.R3 == 1 && dig.L1 == 1 && dig.L2 == 1 && dig.L3 == 1) && count < STOP)
+            {
+                reflectance_digital(&dig);
+            }
+        }
+        
+        if (dig.R1 == 1 && dig.L1 == 1 && dig.R2 == 0 && dig.R3 == 0 && dig.L2 == 0 && dig.L3 == 0 )
+        {
+            motor_forward(70,0);
+            //printf("forward\n");   (just to check if it works, printf here can make the robot confused)
+        }
+        
+        else if ((dig.R2 == 1 || dig.R3 == 1) && dig.L2 == 0 && dig.L3 == 0)
+        {
+            motor_turn(30,0,0);
+            //printf("turn right\n");
+        }
+        
+        else if ((dig.L2 == 1 || dig.L3 == 1) && dig.R2 == 0 && dig.R3 == 0)
+        {
+            motor_turn(0,35,0);
+            //printf("turn left\n");
+        }
+    }
+    
+    motor_forward(0,0);         //robot stops moving
+    printf("End\n");
+    motor_stop();
+    
+     while(true)
+    {
+        vTaskDelay(100);
+    }
+}
+
+#endif
+
+#if 0
+    
 // Assignemnt 1 week 4 Robot sensor go straight line
 
 #define STOP 5
