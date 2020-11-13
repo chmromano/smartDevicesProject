@@ -18,9 +18,9 @@ void zmain(void)
 {
     printf("\nThis is assignment 1 week 3\n");
     
-    motor_start();
+    motor_start();                  //start motor
     printf("\nSTART\n");
-    motor_forward(0,0);
+    motor_forward(0,0);             //not move yet
     
     vTaskDelay(3000);
     
@@ -34,9 +34,9 @@ void zmain(void)
     motor_turn(35,0,1000);          //turn right 45 degree
     motor_forward(50,3500);
     
-    motor_forward(0,0);
+    motor_forward(0,0);             //stop moving
     printf("\nGOAL\n");
-    motor_stop();
+    motor_stop();                   //motor stop
 
     while(true)
     {
