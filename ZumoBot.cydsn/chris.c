@@ -33,6 +33,75 @@ void left_turn(int radius){
 
 
 #if 1
+//Function for  assignment 2 week 4
+    
+#define STOP 2
+
+void zmain(void){
+    
+    //Defining necessary variables
+    struct sensors_ dig;
+    int start = 1;
+    int count = 0;
+    
+    reflectance_set_threshold(11000, 11000, 11000, 11000, 11000, 11000);
+    
+    //Starting necessary devices
+    motor_start();
+    reflectance_start();
+    IR_Start();
+    motor_forward(0,0);
+    
+    //Wait for button press to start program
+    while(SW1_Read());
+    BatteryLed_Write(1);
+    vTaskDelay(1000);
+    BatteryLed_Write(0);
+    
+    //Robot moves forward until the first line
+    motor_forward(50,0);
+    while(start == 1){
+        reflectance_digital(&dig);
+        if(dig.L3 == 1 && dig.L2 == 1 && dig.L1 == 1 && dig.R1 == 1 && dig.R2 == 1 && dig.R3 == 1 && start == 1){
+            motor_forward(0,0);
+            start = 0;
+        }
+    }
+    
+    //Robot waits for IR signal then start moving
+    IR_wait();
+    motor_forward(100,0);
+    
+    //Simple line following algorithm using only central sensors
+    while(count < STOP){
+        reflectance_digital(&dig);
+        if(dig.L3 == 0 && dig.L2 == 0 && dig.L1 == 1 && dig.R1 == 1 && dig.R2 == 0 && dig.R3 == 0){
+            motor_forward(100,0);
+        }else if((dig.L3 == 1 || dig.L2 == 1) && dig.R2 == 0 && dig.R3 == 0){
+            motor_turn(0,100,0);
+        }else if((dig.R3 == 1 || dig.R2 == 1) && dig.L2 == 0 && dig.L3 == 0){
+            motor_turn(100,0,0);
+        }
+        
+        if(dig.L3 == 1 && dig.L2 == 1 && dig.L1 == 1 && dig.R1 == 1 && dig.R2 == 1 && dig.R3 == 1){
+            count++;
+            while((dig.R1 == 1 && dig.R2 == 1 && dig.R3 == 1 && dig.L1 == 1 && dig.L2 == 1 && dig.L3 == 1) && count < STOP){
+                reflectance_digital(&dig);
+            }
+        }
+    }
+    
+    //Stop robot
+    motor_forward(0,0);
+    motor_stop();
+    while(true)
+    {
+        vTaskDelay(100); // sleep (in an infinite loop)
+    }
+}
+#endif
+
+#if 0
 //Prototype function for  project 2 (line following)
     
 #define STOP 3
