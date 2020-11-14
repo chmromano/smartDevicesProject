@@ -198,7 +198,7 @@ void zmain (void)
 }
 #endif
 //week 3 assignment 3
-#if 1
+#if 0
 int zmain (void)
 {
     motor_start();
