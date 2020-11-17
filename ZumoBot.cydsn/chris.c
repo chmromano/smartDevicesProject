@@ -32,7 +32,7 @@ void left_turn(int radius){
 }
 
 
-#if 1
+#if 0
 //Function for  assignment 2 week 4
     
 #define STOP 2
@@ -101,7 +101,7 @@ void zmain(void){
 }
 #endif
 
-#if 0
+#if 1
 //Prototype function for  project 2 (line following)
     
 #define STOP 3
@@ -148,8 +148,14 @@ void zmain(void){
             motor_forward(100,0);
         }else if((dig.L3 == 1 || dig.L2 == 1) && dig.R2 == 0 && dig.R3 == 0){
             motor_turn(0,100,0);
+            if(dig.L1 == 0 && dig.R1 == 0){
+                printf("\nMiss\n");
+            }
         }else if((dig.R3 == 1 || dig.R2 == 1) && dig.L2 == 0 && dig.L3 == 0){
             motor_turn(100,0,0);
+            if(dig.L1 == 0 && dig.R1 == 0){
+                printf("\nMiss\n");
+            }
         }
         
         if(dig.L3 == 1 && dig.L2 == 1 && dig.L1 == 1 && dig.R1 == 1 && dig.R2 == 1 && dig.R3 == 1){
