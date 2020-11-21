@@ -32,6 +32,33 @@ void left_turn(int radius){
 }
 
 
+#if 1
+//Function for assignment 1 week 5
+//SW1_Read() = 1 when button not pressed
+//SW1_Read() = 0 when button is pressed
+
+#define TOPIC "Zumo01/Chris/Button"
+
+void zmain(void){
+    
+    TickType_t var = xTaskGetTickCount();
+    int first_press = 0, last_press = 0, time;
+
+    while(true){
+        var = xTaskGetTickCount();
+        if(SW1_Read() == 0){
+            last_press = var;
+            time = last_press - first_press;
+            print_mqtt(TOPIC, "Elapsed time: %d ms", time);
+            first_press = last_press;
+            while(SW1_Read() == 0);
+        }
+    }
+}
+#endif
+
+
+
 #if 0
 //Function for  assignment 2 week 4
     
@@ -101,7 +128,7 @@ void zmain(void){
 }
 #endif
 
-#if 1
+#if 0
 //Prototype function for  project 2 (line following)
     
 #define STOP 3
