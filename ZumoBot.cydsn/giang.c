@@ -12,6 +12,46 @@
 #include "giang.h"
 
 #if 0
+   
+// Assignment 1 week 5 - Measuring time between 2 button presses
+
+#define BUTTON "Zumo03/Button"
+
+//when button is pressed 1st time, button press = true, press time = time
+//if 1st button press true, 2nd button pressed, 2nd time - 1st time = measured time
+
+void zmain(void)
+{
+    TickType_t previous_time = 0;       //set to 0 to avoid print start time of 1st time press button
+    printf("Press button!\n");
+    bool pressed = false;
+    while(true) {
+        // Press button
+        while(SW1_Read() == 0) {
+            pressed = true;
+            vTaskDelay(10);
+        }
+        // Release button
+        if (SW1_Read() == 1 && pressed )
+        {
+            pressed = false;
+            TickType_t current_time = xTaskGetTickCount();
+            int time = current_time - previous_time;
+            if (previous_time > 0)              //only print time when button presse >= 2 times
+            {
+                print_mqtt(BUTTON, "%d.%d s\n", time/1000, time%1000);
+            }
+            previous_time = current_time;
+        }
+    }
+    while(true)
+    {
+        vTaskDelay(100);
+    }
+}
+#endif
+
+#if 0
     
 // Assignemnt 2 week 4 Robot sensor following line
 
