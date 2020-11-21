@@ -12,10 +12,43 @@
 #include "giang.h"
 
 #if 0
+    
+// Assignment 2 week 5 Ultrasonic Obtacle Reaction
+
+#define TURN "Zumo03/Giang/Turn"
+
+// Use ultrasonic to measure distance to the obtacle, if distance < 10, backward then turn left 90 degree
+
+void zmain(void)
+{
+    Ultra_Start();                                      // Ultra Sonic Start function
+    motor_start();                                      // Motor start
+
+    while(true) {
+        int d_obtacle = Ultra_GetDistance();
+        //printf("distance = %d\r\n", d_obtacle);       // Print the detected distance
+        
+        motor_forward(0,0);
+        motor_forward(20,0);                            // Moving forward
+
+        if (d_obtacle < 10)                         
+        {
+            printf("distance = %d\r\n", d_obtacle);     // Print the detected distance
+            motor_backward(20,1000);
+            motor_turn(0,25,2000);                      // Turn left 90 degree-ish
+            print_mqtt(TURN, "Turn left!");
+        }
+        
+        vTaskDelay(200);
+    }  
+}   
+#endif
+
+#if 0
    
 // Assignment 1 week 5 - Measuring time between 2 button presses
 
-#define BUTTON "Zumo03/Button"
+#define BUTTON "Zumo03/Giang/Button"
 
 //when button is pressed 1st time, button press = true, press time = time
 //if 1st button press true, 2nd button pressed, 2nd time - 1st time = measured time
