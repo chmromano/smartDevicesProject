@@ -18,6 +18,8 @@ motor_turn(50, 15, 5986); gives a roughly 360 degree turn
 
 ==========================================*/
 #include "chris.h"
+#include "alex.h"
+#include "giang.h"
 
 //Premade function for a right turn with radius as parameter
 void right_turn(int radius){
@@ -32,12 +34,54 @@ void left_turn(int radius){
 }
 
 
+
+
 #if 1
+//Function for week 5 assignment 2
+    
+#define TURN "Zumo03/Chris/Turn"
+    
+void zmain(void)
+{
+    //Starting motor and ultrasonic sensor
+    motor_start();
+    Ultra_Start();
+    
+    //Allows first distance reading to be !=0
+    vTaskDelay(100);
+    
+    //Allows functions to be executed indefinitely
+    while(true){
+        int distance = Ultra_GetDistance();
+        motor_forward(25,0);
+        //Performs required actions when distance is short enough
+        if(distance < 10){
+            motor_forward(0, 250);
+            motor_backward(25,1400);
+            
+            //Took this from Alex
+            srand(xTaskGetTickCount());
+            int n = rand() % 2;
+            if (n==0) {
+                print_mqtt(TURN, "Left");
+                SetMotors(1,0, 25, 25, 1050);
+            }else{
+                print_mqtt(TURN, "Right");
+                SetMotors(0,1, 25, 25, 1050);
+            }
+        }
+    }
+}
+#endif
+
+
+
+#if 0
 //Function for assignment 1 week 5
 //SW1_Read() = 1 when button not pressed
 //SW1_Read() = 0 when button is pressed
 
-#define TOPIC "Zumo01/Chris/Button"
+#define TOPIC "Zumo03/Chris/Button"
 
 void zmain(void){
     
