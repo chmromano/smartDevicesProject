@@ -34,9 +34,82 @@ void left_turn(int radius){
 }
 
 
+#if 0
+//Function for week 5 assignment 3
+
+#define TOPIC "Zumo03/Chris/Lap"
+
+void zmain(void){
+    
+    //Defining necessary variables
+    struct sensors_ dig;
+    int start = 1, middle = 1, finish = 1;
+    TickType_t var = xTaskGetTickCount();
+    int start_time, finish_time, elapsed_time;
+    
+    reflectance_set_threshold(11000, 11000, 11000, 11000, 11000, 11000);
+    
+    //Starting necessary devices
+    motor_start();
+    reflectance_start();
+    IR_Start();
+    motor_forward(0,0);
+    
+    //Wait for button press to start program
+    while(SW1_Read());
+    BatteryLed_Write(1);
+    vTaskDelay(1000);
+    BatteryLed_Write(0);
+    
+    //Robot moves forward until the first line
+    motor_forward(25,0);
+    while(start == 1){
+        reflectance_digital(&dig);
+        if(dig.L3 == 1 && dig.L2 == 1 && dig.L1 == 1 && dig.R1 == 1 && dig.R2 == 1 && dig.R3 == 1 && start == 1){
+            motor_forward(0,0);
+            start = 0;
+        }
+    }
+    
+    //Robot waits for IR signal then start moving
+    IR_wait();
+    var = xTaskGetTickCount();
+    start_time = var;
+    motor_forward(25,0);
+    
+    //Robot counts lines until it has to stop
+    while(middle == 1){
+        reflectance_digital(&dig);
+        if(dig.L3 == 1 && dig.L2 == 1 && dig.L1 == 1 && dig.R1 == 1 && dig.R2 == 1 && dig.R3 == 1){
+            middle = 0;
+            while(dig.L3 == 1 && dig.L2 == 1 && dig.L1 == 1 && dig.R1 == 1 && dig.R2 == 1 && dig.R3 == 1){
+                reflectance_digital(&dig);
+            }
+        }
+    }
+    
+    while(finish == 1){
+        reflectance_digital(&dig);
+        var = xTaskGetTickCount();
+        if(dig.L3 == 1 && dig.L2 == 1 && dig.L1 == 1 && dig.R1 == 1 && dig.R2 == 1 && dig.R3 == 1){
+            finish = 0;
+            motor_forward(0,0);
+            motor_stop();
+            finish_time = var;
+            elapsed_time = finish_time - start_time;
+            print_mqtt(TOPIC, "Elapsed time: %d ms", elapsed_time);
+        }
+    }
+    
+    while(true){
+        vTaskDelay(100); // sleep (in an infinite loop)
+    }
+}
+#endif
 
 
-#if 1
+
+#if 0
 //Function for week 5 assignment 2
     
 #define TURN "Zumo03/Chris/Turn"
