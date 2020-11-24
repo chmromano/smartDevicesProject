@@ -33,7 +33,78 @@ void left_turn(int radius){
     motor_turn(15, 50, delay_value);
 }
 
+#if 1
+//Robot project maze solving
+#define READY "Zumo03/ready"
+#define START "Zumo03/start"
+#define POSITION "Zumo03/position"
+void zmain(void){
+    
+    //Defining necessary variables
+    struct sensors_ dig;
+    int start = 1;
+    int distance;
+    int position[2] = {0, 0};
+    TickType_t var = xTaskGetTickCount();
+    
+    //Starting necessary devices
+    motor_start();
+    Ultra_Start();
+    reflectance_start();
+    IR_Start();
+    motor_forward(0,0);
+    reflectance_set_threshold(11000, 11000, 11000, 11000, 11000, 11000);
+    
+    vTaskDelay(100);
+    
+    //Wait for button press to start program
+    while(SW1_Read());
+    BatteryLed_Write(1);
+    vTaskDelay(500);
+    BatteryLed_Write(0);
+    
+    //Robot moves forward until the first line
+    motor_forward(25,0);
+    while(start == 1){
+        reflectance_digital(&dig);
+        if(dig.L3 == 1 && dig.L2 == 1 && dig.L1 == 1 && dig.R1 == 1 && dig.R2 == 1 && dig.R3 == 1 && start == 1){
+            motor_forward(0,0);
+            start = 0;
+            print_mqtt(READY, "maze");
+        }
+    }
+    
+    //Robot waits for IR signal then start moving
+    IR_wait();
+    var = xTaskGetTickCount();
+    print_mqtt(START, "%d", var);
+    motor_forward(15,0);
 
+    
+    while(true){
+        distance = Ultra_GetDistance();
+        reflectance_digital(&dig);
+        if(dig.L3 == 0 && dig.L2 == 0 && dig.L1 == 1 && dig.R1 == 1 && dig.R2 == 0 && dig.R3 == 0){
+            motor_forward(15,0);
+        }else if((dig.R1 == 1 && dig.R2 == 1 && dig.R3 == 1) || (dig.L1 == 1 && dig.L2 == 1 && dig.L3 == 1)){
+            if(distance < 11){
+                while((dig.R1 == 1 && dig.R2 == 1 && dig.R3 == 1) || (dig.L1 == 1 && dig.L2 == 1 && dig.L3 == 1)){
+                    reflectance_digital(&dig);
+                    motor_forward(15,0);
+                }
+            }
+            print_mqtt(POSITION, "(%d, %d)", position[0], position[1]);
+            while((dig.R1 == 1 && dig.R2 == 1 && dig.R3 == 1) || (dig.L1 == 1 && dig.L2 == 1 && dig.L3 == 1)){
+                reflectance_digital(&dig);
+            }
+        }else if((dig.L2 == 1 || dig.R1 == 0) && dig.R2 == 0 && dig.R3 == 0){
+            motor_turn(0,25,0);
+        }else if((dig.R2 == 1 || dig.L1 == 0) && dig.L2 == 0 && dig.L3 == 0){
+            motor_turn(25,0,0);
+        }
+    }
+}
+#endif
 #if 0
 //Function for week 5 assignment 3
 
