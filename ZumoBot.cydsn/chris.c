@@ -33,7 +33,7 @@ void left_turn(int radius){
     motor_turn(15, 50, delay_value);
 }
 
-#if 1
+#if 0
 //Robot project maze solving
 #define READY "Zumo03/ready"
 #define START "Zumo03/start"
@@ -174,6 +174,8 @@ void zmain(void){
     }
 }
 #endif
+
+
 #if 0
 //Function for week 5 assignment 3
 
