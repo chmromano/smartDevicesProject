@@ -43,6 +43,11 @@ void zmain(void){
     //Defining necessary variables
     struct sensors_ dig;
     int start = 1;
+    int mid = 1;
+    int speed = 20;
+    //Orientations; 0 = east, 1 = north, 2 = west, 3 = south
+    //Init orientation = 1 = north
+    int orientation = 1;
     int distance;
     int position[2] = {0, 0};
     TickType_t var = xTaskGetTickCount();
@@ -64,10 +69,12 @@ void zmain(void){
     BatteryLed_Write(0);
     
     //Robot moves forward until the first line
-    motor_forward(25,0);
-    while(start == 1){
+    motor_forward(speed,0);
+    while(start == 1)
+    {
         reflectance_digital(&dig);
-        if(dig.L3 == 1 && dig.L2 == 1 && dig.L1 == 1 && dig.R1 == 1 && dig.R2 == 1 && dig.R3 == 1 && start == 1){
+        if(dig.L3 == 1 && dig.L2 == 1 && dig.L1 == 1 && dig.R1 == 1 && dig.R2 == 1 && dig.R3 == 1 && start == 1)
+        {
             motor_forward(0,0);
             start = 0;
             print_mqtt(READY, "maze");
@@ -78,30 +85,92 @@ void zmain(void){
     IR_wait();
     var = xTaskGetTickCount();
     print_mqtt(START, "%d", var);
-    motor_forward(15,0);
+    motor_forward(speed,0);
 
+    while(mid == 1)
+    {
+        reflectance_digital(&dig);
+        if(dig.L3 == 0 && dig.L2 == 0 && dig.L1 == 1 && dig.R1 == 1 && dig.R2 == 0 && dig.R3 == 0)
+        {
+            mid = 0;
+        }
+    }
     
     while(true){
+        
         distance = Ultra_GetDistance();
         reflectance_digital(&dig);
-        if(dig.L3 == 0 && dig.L2 == 0 && dig.L1 == 1 && dig.R1 == 1 && dig.R2 == 0 && dig.R3 == 0){
-            motor_forward(15,0);
-        }else if((dig.R1 == 1 && dig.R2 == 1 && dig.R3 == 1) || (dig.L1 == 1 && dig.L2 == 1 && dig.L3 == 1)){
-            if(distance < 11){
-                while((dig.R1 == 1 && dig.R2 == 1 && dig.R3 == 1) || (dig.L1 == 1 && dig.L2 == 1 && dig.L3 == 1)){
+        
+        if(dig.L3 == 0 && dig.L2 == 0 && dig.L1 == 1 && dig.R1 == 1 && dig.R2 == 0 && dig.R3 == 0)
+        {
+            motor_forward(speed,0);
+        }
+        else if(dig.L1 == 1 && dig.R1 == 0)
+        {
+            motor_turn(0,speed,0);
+        }
+        else if(dig.L1 == 0 && dig.R1 == 1)
+        {
+            motor_turn(speed,0,0);
+        }
+        else if((dig.R1 == 1 && dig.R2 == 1 && dig.R3 == 1) || (dig.L1 == 1 && dig.L2 == 1 && dig.L3 == 1))
+        {
+            if(distance < 13)
+            {
+                while((dig.R1 == 1 && dig.R2 == 1 && dig.R3 == 1) || (dig.L1 == 1 && dig.L2 == 1 && dig.L3 == 1))
+                {
                     reflectance_digital(&dig);
-                    motor_forward(15,0);
+                    if(position[0] <= 0)
+                    {
+                        motor_turn(speed,0,0);
+                    }
+                    else if(position[0] > 0)
+                    {
+                        motor_turn(0,speed,0);
+                    }
+                }
+            }
+            else if(orientation == 0)
+            {
+                while((dig.R1 == 1 && dig.R2 == 1 && dig.R3 == 1) || (dig.L1 == 1 && dig.L2 == 1 && dig.L3 == 1))
+                {
+                    reflectance_digital(&dig);
+                    motor_turn(0,speed,0);
+                }
+            }
+            else if(orientation == 2)
+            {
+                while((dig.R1 == 1 && dig.R2 == 1 && dig.R3 == 1) || (dig.L1 == 1 && dig.L2 == 1 && dig.L3 == 1))
+                {
+                    reflectance_digital(&dig);
+                    motor_turn(speed,0,0);
                 }
             }
             print_mqtt(POSITION, "(%d, %d)", position[0], position[1]);
-            while((dig.R1 == 1 && dig.R2 == 1 && dig.R3 == 1) || (dig.L1 == 1 && dig.L2 == 1 && dig.L3 == 1)){
+            
+            if(orientation == 0)
+            {
+                position[0]++;
+            }
+            else if(orientation == 1)
+            {
+                position[1]++;
+            }
+            else if(orientation == 2)
+            {
+                position[0]--;
+            }
+            else if(orientation == 3)
+            {
+                position[1]--;
+            }
+            
+            while((dig.R1 == 1 && dig.R2 == 1 && dig.R3 == 1) || (dig.L1 == 1 && dig.L2 == 1 && dig.L3 == 1))
+            {
                 reflectance_digital(&dig);
             }
-        }else if((dig.L2 == 1 || dig.R1 == 0) && dig.R2 == 0 && dig.R3 == 0){
-            motor_turn(0,25,0);
-        }else if((dig.R2 == 1 || dig.L1 == 0) && dig.L2 == 0 && dig.L3 == 0){
-            motor_turn(25,0,0);
         }
+        
     }
 }
 #endif
