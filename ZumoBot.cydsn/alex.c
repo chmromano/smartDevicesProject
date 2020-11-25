@@ -10,6 +10,137 @@
  * ========================================
 */
 #include "alex.h"
+
+
+
+//Sumo wrestling
+#if 0
+#define TOPIC "Zumo03/"
+
+void zmain(void)
+{
+    struct sensors_ dig;
+    int count = 0;
+    int line = 0;
+    int stop = 1;
+    int startTime=0, stopTime=0;
+    
+
+    reflectance_set_threshold(9000, 9000, 11000, 11000, 9000, 9000);
+    //
+    reflectance_start();
+    IR_Start();
+    motor_start();
+    Ultra_Start();
+    motor_forward(0, 0);
+    TickType_t var = xTaskGetTickCount();
+    motor_forward(100, 0);
+    while (count < stop)
+    {
+        reflectance_digital(&dig);
+
+        if (dig.L3 == 1 && dig.L2 == 1 && dig.L1 == 1 && dig.R1 == 1 && dig.R2 == 1 && dig.R3 == 1)
+        {
+            count++;
+            if (count == 1)
+            {
+                line = 1;
+            }
+            
+            while ((dig.L3 == 1 && dig.L2 == 1 && dig.L1 == 1 && dig.R1 == 1 && dig.R2 == 1 && dig.R3 == 1) && count < stop)
+            {
+                reflectance_digital(&dig);
+            }
+        }
+        //stop at first line and wait for IR signal
+        if (line == 1)
+        {   
+            print_mqtt(TOPIC,"ready zumo");  // print subtopic ready zumo when zumo stops at start line 
+            motor_forward(0, 0);
+            IR_wait();           //wait for IR start signal
+            var = xTaskGetTickCount();
+            startTime = var;
+            print_mqtt(TOPIC,"start %d",startTime);
+            motor_forward(100, 0);
+            while(dig.L3|| dig.L2 || dig.L1 || dig.R1 || dig.R2 || dig.R3 ){
+                reflectance_digital(&dig);
+            }
+            line = 0;
+        }
+        // moving foward at speed of 255 if L1 and L2 detect black
+        if (dig.L1 == 1 && dig.R1 == 1)
+        {
+
+            motor_forward(100, 0);
+        }
+        // turning right at speed of 255 if L1 detect white and L2 detect black
+        if (dig.L1 == 0 && dig.R1 == 1)
+        {
+
+            SetMotors(0, 0, 100, 0, 0);
+        }
+        // turning left at speed of 255 if L1 detect black and L2 detect white
+        if (dig.L1 == 1 && dig.R1 == 0)
+        {
+
+            SetMotors(0, 0, 0, 100, 0);
+        }
+    
+}
+    
+    while (true)
+    {
+        int n = rand() % 91 + 90;     //generate ramdom numbers between 90-180
+        int c = rand() % 2;           //generate ramdom numbers between 0-1
+        int d = Ultra_GetDistance();
+        if (d > 1)                    //motor move forward when distance between obstacle or boundary is great than 1
+        {
+            motor_forward(100,0);
+        }
+        else
+        {   var = xTaskGetTickCount();
+            print_mqtt(TOPIC,"obstacle %d",var); //print message when distance between obstacle is smaller than 1
+            motor_littleback();
+            if (c==0){
+                SetMotors(0, 1, 25, 25, n * 11.6);  // if random number c is 0 motor trun right between random 90-180 degrees
+                print_mqtt(TOPIC,"turn %d degrees right",n); // print random turn's direction and angle
+            }
+            else{
+                SetMotors(1, 0, 25, 25, n * 11.6);   // if random number c is 1 motor trun left between random 90-180 degrees
+                print_mqtt(TOPIC,"turn %d degrees left",n);
+            }
+            motor_forward(100,0);
+        }
+        reflectance_digital(&dig);
+        if (dig.L3 == 1 || dig.R3 == 1)
+        {
+            motor_forward(0, 0);
+            motor_littleback();
+            if (c==0){
+                SetMotors(0, 1, 25, 25, n * 11.6);
+            }
+            else{
+                SetMotors(1, 0, 25, 25, n * 11.6);
+            }
+            motor_forward(100,0);
+        }
+        if(SW1_Read()==0)break;   //break the while(ture) loop when user button is pressed
+        
+    }
+    motor_stop();          //motor stop
+    var = xTaskGetTickCount();
+    stopTime = var;
+    print_mqtt(TOPIC,"stop %d",var);      //print stop time
+    print_mqtt(TOPIC,"time %d",stopTime-startTime);     //print the whole running time
+    while(true)
+    {
+        vTaskDelay(100); // sleep (in an infinite loop)
+    }
+    
+    
+}
+    
+#endif
 //week 4 assigment 2
 #if 0
 void zmain(void)
@@ -246,8 +377,6 @@ void zmain(void)
 
 
 
-
-
 // tank turn
 void tank_turn(int8 speed, uint32 delay)
 {
@@ -301,7 +430,4 @@ void motor_forward50(void)
 {
     SetMotors(0,0, 50, 50, 0);
 }
-
-/* [] END OF FILE */
-
 
