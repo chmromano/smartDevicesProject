@@ -33,7 +33,7 @@ motor_turn(50, 15, 5986); gives a roughly 360 degree turn
 #define TIME "Zumo03/time"
 #define POSITION "Zumo03/position"
 #define SPEED 25
-#define AVOID 8
+#define AVOID 13
 
 int maze_right_turn(int speed)
 {
