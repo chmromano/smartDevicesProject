@@ -32,4 +32,10 @@
 void right_turn(int radius);
 //Premade function for a left turn with radius as parameter
 void left_turn(int radius);
+
+
+
+
+int maze_right_turn(void);
+int maze_left_turn(void);
 /* [] END OF FILE */
