@@ -33,6 +33,7 @@ motor_turn(50, 15, 5986); gives a roughly 360 degree turn
 #define TIME "Zumo03/time"
 #define POSITION "Zumo03/position"
 #define SPEED 25
+#define AVOID 8
 
 int maze_right_turn(int speed)
 {
@@ -191,7 +192,7 @@ void robot_project_maze(void){
         {
             print_mqtt(POSITION, "%d %d", position[0], position[1]);
 
-            if(orientation == 1 && distance <= 13)
+            if(orientation == 1 && distance <= AVOID)
             {
                 motor_forward(SPEED, 900);
                 if(position[0] < 0)
@@ -199,7 +200,7 @@ void robot_project_maze(void){
                     maze_right_turn(SPEED);
                     
                     distance = Ultra_GetDistance();
-                    if(distance <= 13)
+                    if(distance <= AVOID)
                     {
                         maze_left_turn(SPEED);
                         maze_left_turn(SPEED);
@@ -223,7 +224,7 @@ void robot_project_maze(void){
                     maze_left_turn(SPEED);
                     
                     distance = Ultra_GetDistance();
-                    if(distance <= 13)
+                    if(distance <= AVOID)
                     {
                         maze_right_turn(SPEED);
                         maze_right_turn(SPEED);
@@ -248,7 +249,7 @@ void robot_project_maze(void){
                 maze_left_turn(SPEED);
                 
                 distance = Ultra_GetDistance();
-                if(distance <= 13)
+                if(distance <= AVOID)
                 {
                     if(position[0] == 3)
                     {
@@ -279,7 +280,7 @@ void robot_project_maze(void){
                 maze_right_turn(SPEED);
                 
                 distance = Ultra_GetDistance();
-                if(distance <= 13)
+                if(distance <= AVOID)
                 {
                     if(position[0] == -3)
                     {
