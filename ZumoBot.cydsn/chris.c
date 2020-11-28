@@ -21,17 +21,18 @@ motor_turn(50, 15, 5986); gives a roughly 360 degree turn
 #include "alex.h"
 #include "giang.h"
 
-//Premade function for a right turn with radius as parameter
-void right_turn(int radius){
-    int delay_value = (5986 * radius)/360;
-    motor_turn(50, 15, delay_value);
-}
 
-//Premade function for a left turn with radius as parameter
-void left_turn(int radius){
-    int delay_value = (5986 * radius)/360;
-    motor_turn(15, 50, delay_value);
-}
+
+
+
+
+//Robot project maze solving
+#define READY "Zumo03/ready"
+#define START "Zumo03/start"
+#define STOP "Zumo03/stop"
+#define TIME "Zumo03/time"
+#define POSITION "Zumo03/position"
+#define SPEED 25
 
 int maze_right_turn(int speed)
 {
@@ -74,28 +75,65 @@ int maze_left_turn(int speed)
     
     return 0;
 }
-#if 1
-//Robot project maze solving
-#define READY "Zumo03/ready"
-#define START "Zumo03/start"
-#define POSITION "Zumo03/position"
-#define SPEED 25
 
-
+int ready_maze(void)
+{
+    struct sensors_ dig;
+    bool moving = true;
+    reflectance_set_threshold(11000, 11000, 11000, 11000, 11000, 11000);
+    reflectance_digital(&dig);
     
+    motor_forward(SPEED,0);
+    
+    while(moving)
+    {
+        reflectance_digital(&dig);
+        if(dig.L3 == 1 && dig.L2 == 1 && dig.L1 == 1 && dig.R1 == 1 && dig.R2 == 1 && dig.R3 == 1)
+        {
+            moving = false;
+        }
+    }
+    
+    motor_forward(0,0);
+    
+    return 0;
+}
 
+int start_maze(void)
+{
+    struct sensors_ dig;
+    bool moving = true;
+    reflectance_set_threshold(11000, 11000, 11000, 11000, 11000, 11000);
+    reflectance_digital(&dig);
+    
+    motor_forward(SPEED,0);
 
-void zmain(void){
+    while(moving == true)
+    {
+        reflectance_digital(&dig);
+        if(dig.L3 == 0 && dig.L2 == 0 && dig.L1 == 1 && dig.R1 == 1 && dig.R2 == 0 && dig.R3 == 0)
+        {
+            moving = false;
+        }
+    }
+    
+    return 0;
+}
+
+void robot_project_maze(void){
     
     //Defining necessary variables
     struct sensors_ dig;
-    int start = 1;
-    int mid = 1;
     //Orientations; 0 = east, 1 = north, 2 = west, 3 = south
     //Init orientation = 1 = north
     int orientation = 1;
     int distance;
+    int start_time;
+    int finish_time;
+    int elapsed_time;
     int position[2] = {0, 0};
+    bool maze_not_finished = true;
+    //bool obstacles[7] = {false, false, false, false, false, false, false};
     TickType_t var = xTaskGetTickCount();
     
     //Starting necessary devices
@@ -115,39 +153,29 @@ void zmain(void){
     BatteryLed_Write(0);
     
     //Robot moves forward until the first line
-    motor_forward(SPEED,0);
-    while(start == 1)
-    {
-        reflectance_digital(&dig);
-        if(dig.L3 == 1 && dig.L2 == 1 && dig.L1 == 1 && dig.R1 == 1 && dig.R2 == 1 && dig.R3 == 1 && start == 1)
-        {
-            motor_forward(0,0);
-            start = 0;
-            print_mqtt(READY, "maze");
-        }
-    }
+    ready_maze();
+    print_mqtt(READY, "maze");
     
     //Robot waits for IR signal then start moving
     IR_wait();
     var = xTaskGetTickCount();
+    start_time = var;
     print_mqtt(START, "%d", var);
-    motor_forward(SPEED,0);
-
-    while(mid == 1)
-    {
-        reflectance_digital(&dig);
-        if(dig.L3 == 0 && dig.L2 == 0 && dig.L1 == 1 && dig.R1 == 1 && dig.R2 == 0 && dig.R3 == 0)
-        {
-            mid = 0;
-        }
-    }
+    start_maze();
     
-    while(true){
+    while(maze_not_finished)
+    {
         
         distance = Ultra_GetDistance();
         reflectance_digital(&dig);
         
-        if(dig.L3 == 0 && dig.L2 == 0 && dig.L1 == 1 && dig.R1 == 1 && dig.R2 == 0 && dig.R3 == 0)
+        if(position[0] == 0 && position[1] == 14)
+        {
+            motor_forward(SPEED, 3000);
+            motor_forward(0, 0);
+            maze_not_finished = false;
+        }
+        else if(dig.L3 == 0 && dig.L2 == 0 && dig.L1 == 1 && dig.R1 == 1 && dig.R2 == 0 && dig.R3 == 0)
         {
             motor_forward(SPEED,0);
         }
@@ -161,48 +189,77 @@ void zmain(void){
         }
         else if((dig.R1 == 1 && dig.R2 == 1 && dig.R3 == 1) || (dig.L1 == 1 && dig.L2 == 1 && dig.L3 == 1))
         {
-            print_mqtt(POSITION, "(%d, %d)", position[0], position[1]);
+            print_mqtt(POSITION, "%d %d", position[0], position[1]);
 
-            if(orientation == 1 && distance <=13)
+            if(orientation == 1 && distance <= 13)
             {
                 motor_forward(SPEED, 900);
-                if(position[0] <= 0)
+                if(position[0] < 0)
                 {
                     maze_right_turn(SPEED);
                     
-                    if(orientation == 0)
+                    distance = Ultra_GetDistance();
+                    if(distance <= 13)
                     {
-                        orientation = 3;
+                        maze_left_turn(SPEED);
+                        maze_left_turn(SPEED);
+                        orientation = 2;
                     }
                     else
                     {
-                        orientation--;
+                        if(orientation == 0)
+                        {
+                            orientation = 3;
+                        }
+                        else
+                        {
+                            orientation--;
+                        }
                     }
                 }
                 
-                if(position[0] > 0)
+                if(position[0] >= 0)
                 {
                     maze_left_turn(SPEED);
                     
-                    if(orientation == 3)
+                    distance = Ultra_GetDistance();
+                    if(distance <= 13)
                     {
+                        maze_right_turn(SPEED);
+                        maze_right_turn(SPEED);
                         orientation = 0;
                     }
                     else
                     {
-                        orientation++;
+                        if(orientation == 3)
+                        {
+                            orientation = 0;
+                        }
+                        else
+                        {
+                            orientation++;
+                        }
                     }
                 }
             }
             else if(orientation == 0)
             {
-                
                 motor_forward(SPEED, 900);
                 maze_left_turn(SPEED);
+                
                 distance = Ultra_GetDistance();
-                if(distance <=13)
+                if(distance <= 13)
                 {
-                    maze_right_turn(SPEED);
+                    if(position[0] == 3)
+                    {
+                        maze_left_turn(SPEED);
+                        
+                        orientation = 2;
+                    }
+                    else
+                    {
+                        maze_right_turn(SPEED);
+                    }
                 }
                 else
                 {
@@ -222,9 +279,19 @@ void zmain(void){
                 maze_right_turn(SPEED);
                 
                 distance = Ultra_GetDistance();
-                if(distance <=13)
+                if(distance <= 13)
                 {
-                    maze_left_turn(SPEED);
+                    if(position[0] == -3)
+                    {
+                        maze_right_turn(SPEED);
+                        
+                        orientation = 0;
+                    }
+                    else
+                    {
+                        maze_left_turn(SPEED);
+                    }
+                    
                 }
                 else
                 {
@@ -238,10 +305,35 @@ void zmain(void){
                     }
                 }
             }
-            
+            else if(orientation == 1 && position[0] > 0 && position[1] >= 11)
+            {
+                motor_forward(SPEED, 900);
+                maze_left_turn(SPEED);
+                if(orientation == 3)
+                {
+                    orientation = 0;
+                }
+                else
+                {
+                    orientation++;
+                }
+            }
+            else if(orientation == 1 && position[0] < 0 && position[1] >= 11)
+            {
+                motor_forward(SPEED, 900);
+                maze_right_turn(SPEED);
+                if(orientation == 0)
+                {
+                    orientation = 3;
+                }
+                else
+                {
+                    orientation--;
+                }
+            }
 
             
-            
+
             if(orientation == 0)
             {
                 position[0]++;
@@ -249,6 +341,10 @@ void zmain(void){
             else if(orientation == 1)
             {
                 position[1]++;
+                //for(i = 0; i < 7; i++)
+                //{
+                //    obstacles[i] = false;
+                //}
             }
             else if(orientation == 2)
             {
@@ -266,8 +362,18 @@ void zmain(void){
             }
         }
     }
+    
+    var = xTaskGetTickCount();
+    finish_time = var;
+    print_mqtt(STOP, "%d", finish_time);
+    elapsed_time = finish_time - start_time;
+    print_mqtt(TIME, "%d", elapsed_time);
+    
+    while(true)
+    {
+        vTaskDelay(100);
+    }
 }
-#endif
 
 
 
@@ -281,6 +387,18 @@ void zmain(void){
 
 
 
+
+
+//Premade function for a right turn with radius as parameter
+void right_turn(int radius){
+    int delay_value = (5986 * radius)/360;
+    motor_turn(50, 15, delay_value);
+}
+//Premade function for a left turn with radius as parameter
+void left_turn(int radius){
+    int delay_value = (5986 * radius)/360;
+    motor_turn(15, 50, delay_value);
+}
 
 #if 0
 //function to test things
