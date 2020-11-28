@@ -32,7 +32,7 @@ motor_turn(50, 15, 5986); gives a roughly 360 degree turn
 #define STOP "Zumo03/stop"
 #define TIME "Zumo03/time"
 #define POSITION "Zumo03/position"
-#define SPEED 25
+#define SPEED 75
 #define AVOID 13
 
 int maze_right_turn(int speed)
@@ -172,7 +172,7 @@ void robot_project_maze(void){
         
         if(position[0] == 0 && position[1] == 14)
         {
-            motor_forward(SPEED, 3000);
+            motor_forward(SPEED, 22500*3/SPEED);
             motor_forward(0, 0);
             maze_not_finished = false;
         }
@@ -194,7 +194,7 @@ void robot_project_maze(void){
 
             if(orientation == 1 && distance <= AVOID)
             {
-                motor_forward(SPEED, 900);
+                motor_forward(SPEED, 22500/SPEED);
                 if(position[0] < 0)
                 {
                     maze_right_turn(SPEED);
@@ -245,7 +245,7 @@ void robot_project_maze(void){
             }
             else if(orientation == 0)
             {
-                motor_forward(SPEED, 900);
+                motor_forward(SPEED, 22500/SPEED);
                 maze_left_turn(SPEED);
                 
                 distance = Ultra_GetDistance();
@@ -276,7 +276,7 @@ void robot_project_maze(void){
             }
             else if(orientation == 2)
             {
-                motor_forward(SPEED, 900);
+                motor_forward(SPEED, 22500/SPEED);
                 maze_right_turn(SPEED);
                 
                 distance = Ultra_GetDistance();
@@ -308,7 +308,7 @@ void robot_project_maze(void){
             }
             else if(orientation == 1 && position[0] > 0 && position[1] >= 11)
             {
-                motor_forward(SPEED, 900);
+                motor_forward(SPEED, 22500/SPEED);
                 maze_left_turn(SPEED);
                 if(orientation == 3)
                 {
@@ -321,7 +321,7 @@ void robot_project_maze(void){
             }
             else if(orientation == 1 && position[0] < 0 && position[1] >= 11)
             {
-                motor_forward(SPEED, 900);
+                motor_forward(SPEED, 22500/SPEED);
                 maze_right_turn(SPEED);
                 if(orientation == 0)
                 {
