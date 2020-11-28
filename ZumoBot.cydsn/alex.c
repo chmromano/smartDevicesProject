@@ -15,7 +15,12 @@
 
 //Sumo wrestling
 #if 0
-#define TOPIC "Zumo03/"
+#define READY "Zumo03/ready"
+#define START "Zumo03/start"
+#define OBSTACLE "Zumo03/obstacle"
+#define TURN "Zumo03/turn"
+#define STOP "Zumo03/stop"
+#define TIME "Zumo03/time"
 
 void zmain(void)
 {
@@ -55,12 +60,12 @@ void zmain(void)
         //stop at first line and wait for IR signal
         if (line == 1)
         {   
-            print_mqtt(TOPIC,"ready zumo");  // print subtopic ready zumo when zumo stops at start line 
+            print_mqtt(READY,"ready zumo");  // print subtopic ready zumo when zumo stops at start line 
             motor_forward(0, 0);
             IR_wait();           //wait for IR start signal
             var = xTaskGetTickCount();
             startTime = var;
-            print_mqtt(TOPIC,"start %d",startTime);
+            print_mqtt(START,"start %d",startTime);
             motor_forward(100, 0);
             while(dig.L3|| dig.L2 || dig.L1 || dig.R1 || dig.R2 || dig.R3 ){
                 reflectance_digital(&dig);
@@ -99,15 +104,15 @@ void zmain(void)
         }
         else
         {   var = xTaskGetTickCount();
-            print_mqtt(TOPIC,"obstacle %d",var); //print message when distance between obstacle is smaller than 1
+            print_mqtt(OBSTACLE,"obstacle %d",var); //print message when distance between obstacle is smaller than 1
             motor_littleback();
             if (c==0){
                 SetMotors(0, 1, 25, 25, n * 11.6);  // if random number c is 0 motor trun right between random 90-180 degrees
-                print_mqtt(TOPIC,"turn %d degrees right",n); // print random turn's direction and angle
+                print_mqtt(TURN,"turn %d degrees right",n); // print random turn's direction and angle
             }
             else{
                 SetMotors(1, 0, 25, 25, n * 11.6);   // if random number c is 1 motor trun left between random 90-180 degrees
-                print_mqtt(TOPIC,"turn %d degrees left",n);
+                print_mqtt(TURN,"turn %d degrees left",n);
             }
             motor_forward(100,0);
         }
@@ -130,8 +135,8 @@ void zmain(void)
     motor_stop();          //motor stop
     var = xTaskGetTickCount();
     stopTime = var;
-    print_mqtt(TOPIC,"stop %d",var);      //print stop time
-    print_mqtt(TOPIC,"time %d",stopTime-startTime);     //print the whole running time
+    print_mqtt(STOP,"stop %d",var);      //print stop time
+    print_mqtt(TIME,"time %d",stopTime-startTime);     //print the whole running time
     while(true)
     {
         vTaskDelay(100); // sleep (in an infinite loop)
