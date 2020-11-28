@@ -32,7 +32,6 @@ void zmain(void)
     
 
     reflectance_set_threshold(9000, 9000, 11000, 11000, 9000, 9000);
-    //
     reflectance_start();
     IR_Start();
     motor_start();
@@ -57,34 +56,34 @@ void zmain(void)
                 reflectance_digital(&dig);
             }
         }
-        //stop at first line and wait for IR signal
+        //stop at the edge of ring and wait for IR start signal
         if (line == 1)
         {   
-            print_mqtt(READY,"ready zumo");  // print subtopic ready zumo when zumo stops at start line 
+            print_mqtt(READY,"zumo");  // print subtopic ready zumo when zumo stops at start line 
             motor_forward(0, 0);
             IR_wait();           //wait for IR start signal
             var = xTaskGetTickCount();
             startTime = var;
-            print_mqtt(START,"start %d",startTime);
+            print_mqtt(START,"%d",startTime);
             motor_forward(100, 0);
             while(dig.L3|| dig.L2 || dig.L1 || dig.R1 || dig.R2 || dig.R3 ){
                 reflectance_digital(&dig);
             }
             line = 0;
         }
-        // moving foward at speed of 255 if L1 and L2 detect black
+        // using line following function to guide robot to satart point as robot moves foward at speed of 100 if L1 and L2 detect black
         if (dig.L1 == 1 && dig.R1 == 1)
         {
 
             motor_forward(100, 0);
         }
-        // turning right at speed of 255 if L1 detect white and L2 detect black
+        // turning right at speed of 100 if L1 detect white and L2 detect black
         if (dig.L1 == 0 && dig.R1 == 1)
         {
 
             SetMotors(0, 0, 100, 0, 0);
         }
-        // turning left at speed of 255 if L1 detect black and L2 detect white
+        // turning left at speed of 100 if L1 detect black and L2 detect white
         if (dig.L1 == 1 && dig.R1 == 0)
         {
 
@@ -104,15 +103,15 @@ void zmain(void)
         }
         else
         {   var = xTaskGetTickCount();
-            print_mqtt(OBSTACLE,"obstacle %d",var); //print message when distance between obstacle is smaller than 1
+            print_mqtt(OBSTACLE,"%d",var); //print message when distance between obstacle is smaller than 1
             motor_littleback();
             if (c==0){
                 SetMotors(0, 1, 25, 25, n * 11.6);  // if random number c is 0 motor trun right between random 90-180 degrees
-                print_mqtt(TURN,"turn %d degrees right",n); // print random turn's direction and angle
+                print_mqtt(TURN,"%d degrees right",n); // print random turn's direction and angle
             }
             else{
                 SetMotors(1, 0, 25, 25, n * 11.6);   // if random number c is 1 motor trun left between random 90-180 degrees
-                print_mqtt(TURN,"turn %d degrees left",n);
+                print_mqtt(TURN,"%d degrees left",n);
             }
             motor_forward(100,0);
         }
@@ -135,8 +134,8 @@ void zmain(void)
     motor_stop();          //motor stop
     var = xTaskGetTickCount();
     stopTime = var;
-    print_mqtt(STOP,"stop %d",var);      //print stop time
-    print_mqtt(TIME,"time %d",stopTime-startTime);     //print the whole running time
+    print_mqtt(STOP,"%d",var);      //print stop time
+    print_mqtt(TIME,"%d",stopTime-startTime);     //print the whole running time
     while(true)
     {
         vTaskDelay(100); // sleep (in an infinite loop)
