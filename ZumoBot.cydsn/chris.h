@@ -36,6 +36,6 @@ void left_turn(int radius);
 
 
 
-int maze_right_turn(void);
-int maze_left_turn(void);
+int maze_right_turn(int speed);
+int maze_left_turn(int speed);
 /* [] END OF FILE */

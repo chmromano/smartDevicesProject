@@ -33,46 +33,47 @@ void left_turn(int radius){
     motor_turn(15, 50, delay_value);
 }
 
-/*
-int maze_right_turn(void)
+int maze_right_turn(int speed)
 {
     struct sensors_ dig;
     reflectance_set_threshold(11000, 11000, 11000, 11000, 11000, 11000);
+    reflectance_digital(&dig);
+    
     while(dig.L3 == 1 || dig.L2 == 1 || dig.L1 == 1 || dig.R1 == 1)
     {
         reflectance_digital(&dig);
-        SetMotors(0, 1, SPEED, SPEED, 0);
+        SetMotors(0, 1, speed, speed, 0);
     }
     
     while(dig.L1 != 1 || dig.R1 != 1)
     {
         reflectance_digital(&dig);
-        SetMotors(0, 1, SPEED, SPEED, 0);
+        SetMotors(0, 1, speed, speed, 0);
     }
+    
     return 0;
 }
 
-int maze_left_turn(void)
+int maze_left_turn(int speed)
 {
     struct sensors_ dig;
     reflectance_set_threshold(11000, 11000, 11000, 11000, 11000, 11000);
+    reflectance_digital(&dig);
+    
     while( dig.L1 == 1 || dig.R1 == 1 || dig.R2 == 1 || dig.R3 == 1)
     {
         reflectance_digital(&dig);
-        SetMotors(1, 0, SPEED, SPEED, 0);
+        SetMotors(1, 0, speed, speed, 0);
     }
     
     while(dig.L1 != 1 || dig.R1 != 1)
     {
         reflectance_digital(&dig);
-        SetMotors(1, 0, SPEED, SPEED, 0);
+        SetMotors(1, 0, speed, speed, 0);
     }
+    
     return 0;
 }
-*/
-
-
-
 #if 1
 //Robot project maze solving
 #define READY "Zumo03/ready"
@@ -80,47 +81,9 @@ int maze_left_turn(void)
 #define POSITION "Zumo03/position"
 #define SPEED 25
 
-int maze_right_turn(void)
-{
-    struct sensors_ dig;
-    reflectance_set_threshold(11000, 11000, 11000, 11000, 11000, 11000);
-    reflectance_digital(&dig);
+
     
-    while(dig.L3 == 1 || dig.L2 == 1 || dig.L1 == 1 || dig.R1 == 1)
-    {
-        reflectance_digital(&dig);
-        SetMotors(0, 1, SPEED, SPEED, 0);
-    }
-    
-    while(dig.L1 != 1 || dig.R1 != 1)
-    {
-        reflectance_digital(&dig);
-        SetMotors(0, 1, SPEED, SPEED, 0);
-    }
-    
-    return 0;
-}
-    
-int maze_left_turn(void)
-{
-    struct sensors_ dig;
-    reflectance_set_threshold(11000, 11000, 11000, 11000, 11000, 11000);
-    reflectance_digital(&dig);
-    
-    while( dig.L1 == 1 || dig.R1 == 1 || dig.R2 == 1 || dig.R3 == 1)
-    {
-        reflectance_digital(&dig);
-        SetMotors(1, 0, SPEED, SPEED, 0);
-    }
-    
-    while(dig.L1 != 1 || dig.R1 != 1)
-    {
-        reflectance_digital(&dig);
-        SetMotors(1, 0, SPEED, SPEED, 0);
-    }
-    
-    return 0;
-}
+
 
 void zmain(void){
     
@@ -205,7 +168,7 @@ void zmain(void){
                 motor_forward(SPEED, 900);
                 if(position[0] <= 0)
                 {
-                    maze_right_turn();
+                    maze_right_turn(SPEED);
                     
                     if(orientation == 0)
                     {
@@ -219,7 +182,7 @@ void zmain(void){
                 
                 if(position[0] > 0)
                 {
-                    maze_left_turn();
+                    maze_left_turn(SPEED);
                     
                     if(orientation == 3)
                     {
@@ -235,11 +198,11 @@ void zmain(void){
             {
                 
                 motor_forward(SPEED, 900);
-                maze_left_turn();
+                maze_left_turn(SPEED);
                 distance = Ultra_GetDistance();
                 if(distance <=13)
                 {
-                    maze_right_turn();
+                    maze_right_turn(SPEED);
                 }
                 else
                 {
@@ -256,12 +219,12 @@ void zmain(void){
             else if(orientation == 2)
             {
                 motor_forward(SPEED, 900);
-                maze_right_turn();
+                maze_right_turn(SPEED);
                 
                 distance = Ultra_GetDistance();
                 if(distance <=13)
                 {
-                    maze_left_turn();
+                    maze_left_turn(SPEED);
                 }
                 else
                 {
