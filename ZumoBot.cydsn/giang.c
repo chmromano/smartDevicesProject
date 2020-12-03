@@ -52,7 +52,7 @@ void zmain(void)
     TickType_t miss_time = xTaskGetTickCount();
     TickType_t back_to_line_time = xTaskGetTickCount();
     
-    printf("Starting\n");
+    //printf("Starting\n");
 
     while (true)
     {
@@ -89,7 +89,7 @@ void zmain(void)
             if (reverse == false && dig.R1 == 1 && dig.R2 == 1 && dig.R3 == 1 && dig.L1 == 1 && dig.L2 == 1 && dig.L3 == 1)
             {
                 count++;
-                printf("count: %d\n", count);
+                //printf("count: %d\n", count);
                 
                 //for robot moves to first line and wait for button pressed
                 if (count == 1)
@@ -191,134 +191,13 @@ void zmain(void)
         motor_stop();
         total_time = stop_time - start_time;
         print_mqtt(TIME, "%d", total_time);
-        printf("%d.%d\n", total_time/1000, total_time%1000);
+        //printf("%d.%d\n", total_time/1000, total_time%1000);
         finish = true;
-    }
-    
-     while(true)
-    {
+        
         vTaskDelay(100);
     }
 }
 
-#endif
-
-#if 0
-    
-// Assignemnt 3 week 5 Robot sensor go straight line MQTT time
-
-// A loop of when button is pressed, robot moves forward and stops on the next black line
-// Time is marked when moving to another line
-
-// Track 'Five step ladder' is used
-
-#define LAP "Zumo03/Giang/Lap"
-
-void zmain(void)
-{
-    struct sensors_ dig;                            //call function sensor
-    int count = 0;                                  //counting button presses
-    int max_count = 5;                              //max button press time
-    bool run = false;                               //boolance: if it's true, robot moves
-    bool pressed = false;                           //boolance: if it's true, button is pressed
-    TickType_t start_time = xTaskGetTickCount();
-    TickType_t stop_time = xTaskGetTickCount();     //start & stop moving time calculating
-    
-    
-    reflectance_set_threshold(20000, 20000, 20000, 20000, 20000, 20000);       //set sensor threshold all to 10000
-    
-    reflectance_start();                            //start reflectance sensor
-    IR_Start();                                     //start IR receiver
-    motor_start();                                  //start motor
-    motor_forward(0,0);                             //not move yet
-    
-    while(SW1_Read());
-    BatteryLed_Write(1);                            //led on
-    vTaskDelay(2000);                               //delay 2s
-    BatteryLed_Write(0);                            //led off
-    
-    reflectance_digital(&dig);                      //Making Reflectance Sensor's period to digital
-    motor_forward(70,0);                            //Moving forward
-        
-    while(count <= max_count)                       //if count < 5, loop to move robot         
-    {
-        if (run)
-        {
-            reflectance_digital(&dig);
-            if (dig.R1 == 1 && dig.R2 == 1 && dig.R3 == 1 && dig.L1 == 1 && dig.L2 == 1 && dig.L3 == 1)
-            {
-                while((dig.R1 == 1 && dig.R2 == 1 && dig.R3 == 1 && dig.L1 == 1 && dig.L2 == 1 && dig.L3 == 1) && run)
-                {
-                    reflectance_digital(&dig);
-                }
-                run = false;
-                stop_time = xTaskGetTickCount();
-                int run_time = stop_time - start_time;
-                print_mqtt(LAP, "Elapsed time: %d.%d s\n", run_time/1000, run_time%1000);
-            }
-        }
-        else if (SW1_Read() == 0)                   // when button is pressed, boolance is true to wait for release
-        {
-            pressed = true;
-        }
-        else if (SW1_Read() == 1 && pressed)        // if button is not pressed but bool is true, it means button released        
-        {
-            pressed = false;
-            run = true;
-            start_time = xTaskGetTickCount(); 
-            count++;                                //counting button presses
-        }
-        if (run == false)                           // if else for move robot forward
-        {
-            motor_forward(0,0);             
-        }
-        else
-        {
-            motor_forward(70,0);         
-        }
-    }
-    
-    motor_stop();
-    
-     while(true)
-    {
-        vTaskDelay(100);
-    }
-}
-
-#endif
-
-#if 0
-    
-// Assignment 2 week 5 Ultrasonic Obtacle Reaction
-
-#define TURN "Zumo03/Giang/Turn"
-
-// Use ultrasonic to measure distance to the obtacle, if distance < 10, backward then turn left 90 degree
-
-void zmain(void)
-{
-    Ultra_Start();                                      // Ultra Sonic Start function
-    motor_start();                                      // Motor start
-
-    while(true) {
-        int d_obtacle = Ultra_GetDistance();
-        //printf("distance = %d\r\n", d_obtacle);       // Print the detected distance
-        
-        motor_forward(0,0);
-        motor_forward(20,0);                            // Moving forward
-
-        if (d_obtacle < 10)                         
-        {
-            printf("distance = %d\r\n", d_obtacle);     // Print the detected distance
-            motor_backward(20,1000);
-            motor_turn(0,25,2000);                      // Turn left 90 degree-ish
-            print_mqtt(TURN, "Turn left!");
-        }
-        
-        vTaskDelay(200);
-    }  
-}   
 #endif
 
 #if 0
