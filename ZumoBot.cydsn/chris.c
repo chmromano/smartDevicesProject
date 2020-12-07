@@ -39,12 +39,13 @@ int maze_right_turn(int speed)
     reflectance_set_threshold(11000, 11000, 11000, 11000, 11000, 11000);
     reflectance_digital(&dig);
     
+    //First loop condition, turn until none of the below sensors are on the line
     while(dig.L3 == 1 || dig.L2 == 1 || dig.L1 == 1 || dig.R1 == 1)
     {
         reflectance_digital(&dig);
         SetMotors(0, 1, speed, speed, 0);
     }
-    
+    //Keep turning until middle sensors are on the line
     while(dig.L1 != 1 || dig.R1 != 1)
     {
         reflectance_digital(&dig);
@@ -61,12 +62,13 @@ int maze_left_turn(int speed)
     reflectance_set_threshold(11000, 11000, 11000, 11000, 11000, 11000);
     reflectance_digital(&dig);
     
+    //First loop condition, turn until none of the below sensors are on the line
     while( dig.L1 == 1 || dig.R1 == 1 || dig.R2 == 1 || dig.R3 == 1)
     {
         reflectance_digital(&dig);
         SetMotors(1, 0, speed, speed, 0);
     }
-    
+    //Keep turning until middle sensors are on the line
     while(dig.L1 != 1 || dig.R1 != 1)
     {
         reflectance_digital(&dig);
@@ -86,20 +88,26 @@ int ready_maze(void)
     
     motor_forward(SPEED,0);
     
+    //Keep moving until you encounter black line, then keep moving until you are out of black line
     while(moving)
     {
         reflectance_digital(&dig);
         if(dig.L3 == 1 && dig.L2 == 1 && dig.L1 == 1 && dig.R1 == 1 && dig.R2 == 1 && dig.R3 == 1)
         {
+            while(dig.L3 == 1 && dig.L2 == 1 && dig.L1 == 1 && dig.R1 == 1 && dig.R2 == 1 && dig.R3 == 1)
+            {
+                reflectance_digital(&dig);
+            }
             moving = false;
         }
     }
-    
+     //Stop
     motor_forward(0,0);
     
     return 0;
 }
-//Function to move to maze (avoids printing coordinates for first line(0,-1))
+
+/*Function to move to maze (avoids printing coordinates for first line(0,-1))
 int start_maze(void)
 {
     struct sensors_ dig;
@@ -109,6 +117,7 @@ int start_maze(void)
     
     motor_forward(SPEED,0);
 
+    //Loop until you find middle line
     while(moving == true)
     {
         reflectance_digital(&dig);
@@ -120,6 +129,7 @@ int start_maze(void)
     
     return 0;
 }
+*/
 
 //Function with motor delay to center robot at intersections
 int center_intersection(int speed)
@@ -136,8 +146,8 @@ void robot_project_maze(void){
     
     //Defining necessary variables
     int orientation = 1;
-    //Orientations; 0 = east, 1 = north, 2 = west, 3 = south
-    //Init orientation = 1 = north
+    //Orientations; 0 = east, 1 = north, 2 = west, 3 = south not needed
+    //Initial orientation = 1 = north
     int distance;
     TickType_t start_time;
     TickType_t finish_time;
@@ -169,7 +179,7 @@ void robot_project_maze(void){
     IR_wait();
     start_time = xTaskGetTickCount();
     print_mqtt(START, "%d", start_time);
-    start_maze();
+    motor_forward(SPEED,0);
     
     //Loop  for the maze solving algorithm
     while(maze_not_finished)
@@ -239,7 +249,7 @@ void robot_project_maze(void){
                     //(at x = 0 it is arbitrary, for anything else 
                     //logically i would think that if you're close
                     //to the edge you would want to turn the other way)
-                    if(position[0] < 0)
+                    if(position[0] <= 0)
                     {
                         maze_right_turn(SPEED);
                         
@@ -258,7 +268,7 @@ void robot_project_maze(void){
                             orientation = 0;
                         }
                     }
-                    else if(position[0] >= 0)
+                    else if(position[0] > 0)
                     {
                         maze_left_turn(SPEED);
                         
