@@ -28,11 +28,6 @@
 #include "serial1.h"
 #include <unistd.h>
 
-//Premade function for a right turn with radius as parameter
-void right_turn(int radius);
-//Premade function for a left turn with radius as parameter
-void left_turn(int radius);
-
 
 
 
@@ -41,5 +36,20 @@ int maze_left_turn(int speed);
 int forward_until_line(void);
 void robot_project_maze(void);
 int start_maze(void);
+
+
+
+
+//Premade function for a right turn with radius as parameter
+void right_turn(int radius);
+//Premade function for a left turn with radius as parameter
+void left_turn(int radius);
 int center_intersection(int speed);
+void week3assignment2_chris(void);
+void week4assignment1_chris(void);
+void line_following_prototype(void);
+void assignment2week4_chris(void);
+void assignment1week5_chris(void);
+void week3assignment3_chris(void);
+void week5assignmnent3_chris(void);
 /* [] END OF FILE */

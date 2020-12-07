@@ -11,7 +11,7 @@
 */
 #include "giang.h"
 
-#if 1
+#if 0
     
 // Line follower
 // Apply codes from assignmnet 2 week 4 line following and adjust with more conditions
