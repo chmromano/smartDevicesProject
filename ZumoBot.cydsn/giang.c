@@ -96,6 +96,7 @@ void robot_following_line (void)
                         print_mqtt(READY, "line");
                     }
                     IR_wait();
+                    start_time = xTaskGetTickCount(); 
                     race = true;
                     motor_forward(max_speed,0);
                     print_mqtt(START, "%d", start_time);
