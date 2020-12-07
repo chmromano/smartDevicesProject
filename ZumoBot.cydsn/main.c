@@ -37,9 +37,24 @@
  * @details  ** Enable global interrupt since Zumo library uses interrupts. **<br>&nbsp;&nbsp;&nbsp;CyGlobalIntEnable;<br>
 */
 
+#if 0
+//Function for robot project sumo wrestling
+void zmain(void)
+{
+    
+}
+#endif
 
-#if 1
-//Function for robot project maze
+#if 0
+//Function for robot project line following
+void zmain (void)
+{
+    
+}
+#endif    
+
+#if 0
+//Function for robot project maze solving
 void zmain(void)
 {
     robot_project_maze();    

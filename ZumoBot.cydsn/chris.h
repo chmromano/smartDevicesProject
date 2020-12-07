@@ -41,4 +41,5 @@ int maze_left_turn(int speed);
 int forward_until_line(void);
 void robot_project_maze(void);
 int start_maze(void);
+int center_intersection(int speed);
 /* [] END OF FILE */

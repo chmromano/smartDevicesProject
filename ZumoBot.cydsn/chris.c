@@ -23,9 +23,6 @@ motor_turn(50, 15, 5986); gives a roughly 360 degree turn
 
 
 
-
-
-
 //Robot project maze solving
 #define READY "Zumo03/ready"
 #define START "Zumo03/start"
@@ -35,6 +32,7 @@ motor_turn(50, 15, 5986); gives a roughly 360 degree turn
 #define SPEED 75
 #define AVOID 13
 
+//Function for 90 degree right turns
 int maze_right_turn(int speed)
 {
     struct sensors_ dig;
@@ -56,6 +54,7 @@ int maze_right_turn(int speed)
     return 0;
 }
 
+//Function for 90 degree left turns
 int maze_left_turn(int speed)
 {
     struct sensors_ dig;
@@ -77,6 +76,7 @@ int maze_left_turn(int speed)
     return 0;
 }
 
+//Function to move to first start line
 int ready_maze(void)
 {
     struct sensors_ dig;
@@ -99,7 +99,7 @@ int ready_maze(void)
     
     return 0;
 }
-
+//Function to move to maze (avoids printing coordinates for first line(0,-1))
 int start_maze(void)
 {
     struct sensors_ dig;
@@ -121,23 +121,32 @@ int start_maze(void)
     return 0;
 }
 
+//Function with motor delay to center robot at intersections
+int center_intersection(int speed)
+{
+    motor_forward(speed, 22500/speed);
+    return 0;
+}
+
+//Function for maze solving project
 void robot_project_maze(void){
     
-    //Defining necessary variables
+    //Define dig struct
     struct sensors_ dig;
+    
+    //Defining necessary variables
+    int orientation = 1;
     //Orientations; 0 = east, 1 = north, 2 = west, 3 = south
     //Init orientation = 1 = north
-    int orientation = 1;
     int distance;
     int start_time;
     int finish_time;
     int elapsed_time;
     int position[2] = {0, 0};
     bool maze_not_finished = true;
-    //bool obstacles[7] = {false, false, false, false, false, false, false};
-    TickType_t var = xTaskGetTickCount();
+    TickType_t time;
     
-    //Starting necessary devices
+    //Starting necessary devices and setting reflectance threshold
     motor_start();
     Ultra_Start();
     reflectance_start();
@@ -153,162 +162,118 @@ void robot_project_maze(void){
     vTaskDelay(500);
     BatteryLed_Write(0);
     
-    //Robot moves forward until the first line
+    //Robot moves forward until the first line and prints READY to mqtt
     ready_maze();
     print_mqtt(READY, "maze");
     
-    //Robot waits for IR signal then start moving
+    //Robot waits for IR signal, prints START to mqtt and then starts moving
     IR_wait();
-    var = xTaskGetTickCount();
-    start_time = var;
-    print_mqtt(START, "%d", var);
+    time = xTaskGetTickCount();
+    start_time = time;
+    print_mqtt(START, "%d", start_time);
     start_maze();
     
+    //Loop  for the maze solving algorithm
     while(maze_not_finished)
     {
-        
+        //Constantly refresh distance and reflectance values
         distance = Ultra_GetDistance();
         reflectance_digital(&dig);
         
+        //Conditional for finish line
         if(position[0] == 0 && position[1] == 14)
         {
-            motor_forward(SPEED, 22500*3/SPEED);
+            while(dig.L1 == 1 || dig.R1 == 1)
+            {
+                reflectance_digital(&dig);
+                
+                if(dig.L3 == 0 && dig.L2 == 0 && dig.L1 == 1 && dig.R1 == 1 && dig.R2 == 0 && dig.R3 == 0)
+                {
+                    motor_forward(SPEED,0);
+                }
+                else if(dig.L1 == 1 && dig.R1 == 0)
+                {
+                    motor_turn(0,SPEED,0);
+                }
+                else if(dig.L1 == 0 && dig.R1 == 1)
+                {
+                    motor_turn(SPEED,0,0);
+                }
+            }
+            
             motor_forward(0, 0);
             maze_not_finished = false;
         }
+        //Go straight
         else if(dig.L3 == 0 && dig.L2 == 0 && dig.L1 == 1 && dig.R1 == 1 && dig.R2 == 0 && dig.R3 == 0)
         {
             motor_forward(SPEED,0);
         }
+        //Turn left if straying right
         else if(dig.L1 == 1 && dig.R1 == 0)
         {
             motor_turn(0,SPEED,0);
         }
+        //Turn right if straying left
         else if(dig.L1 == 0 && dig.R1 == 1)
         {
             motor_turn(SPEED,0,0);
         }
+        //Conditional for intersections
         else if((dig.R1 == 1 && dig.R2 == 1 && dig.R3 == 1) || (dig.L1 == 1 && dig.L2 == 1 && dig.L3 == 1))
         {
             print_mqtt(POSITION, "%d %d", position[0], position[1]);
-
+            
+            //If orientation is north and obstacle is present
             if(orientation == 1 && distance <= AVOID)
             {
-                motor_forward(SPEED, 22500/SPEED);
+                center_intersection(SPEED);
+                //Depending on robot coordinates turn left or right
                 if(position[0] < 0)
                 {
                     maze_right_turn(SPEED);
                     
+                    //Check for obstacle after turn left or right
                     distance = Ultra_GetDistance();
+                    //If obstacle is present do 180 degree turn left and update orientation to west
                     if(distance <= AVOID)
                     {
                         maze_left_turn(SPEED);
                         maze_left_turn(SPEED);
                         orientation = 2;
                     }
+                    //Else update orientation to east
                     else
                     {
-                        if(orientation == 0)
-                        {
-                            orientation = 3;
-                        }
-                        else
-                        {
-                            orientation--;
-                        }
+                        orientation = 0;
                     }
                 }
-                
-                if(position[0] >= 0)
+                else if(position[0] >= 0)
                 {
                     maze_left_turn(SPEED);
                     
+                    //Check for obstacle after turn
                     distance = Ultra_GetDistance();
+                    //If obstacle is present do 180 degree turn right and update orientation to east
                     if(distance <= AVOID)
                     {
                         maze_right_turn(SPEED);
                         maze_right_turn(SPEED);
                         orientation = 0;
                     }
+                    //Else update orientation to west
                     else
                     {
-                        if(orientation == 3)
-                        {
-                            orientation = 0;
-                        }
-                        else
-                        {
-                            orientation++;
-                        }
-                    }
-                }
-            }
-            else if(orientation == 0)
-            {
-                motor_forward(SPEED, 22500/SPEED);
-                maze_left_turn(SPEED);
-                
-                distance = Ultra_GetDistance();
-                if(distance <= AVOID)
-                {
-                    if(position[0] == 3)
-                    {
-                        maze_left_turn(SPEED);
-                        
                         orientation = 2;
                     }
-                    else
-                    {
-                        maze_right_turn(SPEED);
-                    }
-                }
-                else
-                {
-                    if(orientation == 3)
-                    {
-                        orientation = 0;
-                    }
-                    else
-                    {
-                        orientation++;
-                    }
                 }
             }
-            else if(orientation == 2)
-            {
-                motor_forward(SPEED, 22500/SPEED);
-                maze_right_turn(SPEED);
-                
-                distance = Ultra_GetDistance();
-                if(distance <= AVOID)
-                {
-                    if(position[0] == -3)
-                    {
-                        maze_right_turn(SPEED);
-                        
-                        orientation = 0;
-                    }
-                    else
-                    {
-                        maze_left_turn(SPEED);
-                    }
-                    
-                }
-                else
-                {
-                    if(orientation == 0)
-                    {
-                        orientation = 3;
-                    }
-                    else
-                    {
-                        orientation--;
-                    }
-                }
-            }
+            
+            
+            
             else if(orientation == 1 && position[0] > 0 && position[1] >= 11)
             {
-                motor_forward(SPEED, 22500/SPEED);
+                center_intersection(SPEED);
                 maze_left_turn(SPEED);
                 if(orientation == 3)
                 {
@@ -321,7 +286,7 @@ void robot_project_maze(void){
             }
             else if(orientation == 1 && position[0] < 0 && position[1] >= 11)
             {
-                motor_forward(SPEED, 22500/SPEED);
+                center_intersection(SPEED);
                 maze_right_turn(SPEED);
                 if(orientation == 0)
                 {
@@ -332,6 +297,66 @@ void robot_project_maze(void){
                     orientation--;
                 }
             }
+            
+            
+            //Else if orientation is east
+            else if(orientation == 0)
+            {
+                center_intersection(SPEED);
+                
+                //Turn left
+                maze_left_turn(SPEED);
+                
+                //Check for obstacle
+                distance = Ultra_GetDistance();
+                //If there is obstacle and position is at right edge, turn left
+                //and update orientation to west
+                if(distance <= AVOID && position[0] == 3)
+                {
+                    maze_left_turn(SPEED);
+                    orientation = 2;
+                }
+                //Else if there is obstacles turn right
+                else if(distance <= AVOID)
+                {
+                    maze_right_turn(SPEED);
+                }
+                //Else update orientation to north
+                else
+                {
+                    orientation = 1;
+                }
+            }
+            //Else if orientatio is west
+            else if(orientation == 2)
+            {
+                center_intersection(SPEED);
+                
+                //Turn right
+                maze_right_turn(SPEED);
+                
+                //Check for obstacle
+                distance = Ultra_GetDistance();
+                //If there is obstacle and position is at left edge, turn right
+                //and update orientation to east
+                if(distance <= AVOID && position[0] == -3)
+                {
+                    maze_right_turn(SPEED);
+                    orientation = 0;
+                }
+                //Else if there is obstacles turn left
+                else if(distance <= AVOID)
+                {
+                    maze_left_turn(SPEED);
+                }
+                //Else update orientation to north
+                else
+                {
+                    orientation = 1;
+                }
+            }
+            //
+
 
             
 
@@ -342,10 +367,6 @@ void robot_project_maze(void){
             else if(orientation == 1)
             {
                 position[1]++;
-                //for(i = 0; i < 7; i++)
-                //{
-                //    obstacles[i] = false;
-                //}
             }
             else if(orientation == 2)
             {
@@ -356,7 +377,8 @@ void robot_project_maze(void){
                 position[1]--;
             }
             
-            
+            //This lets the while loop run just once per intersection
+            //(otherwise it would constantly try to update)
             while((dig.R1 == 1 && dig.R2 == 1 && dig.R3 == 1) || (dig.L1 == 1 && dig.L2 == 1 && dig.L3 == 1))
             {
                 reflectance_digital(&dig);
@@ -364,8 +386,9 @@ void robot_project_maze(void){
         }
     }
     
-    var = xTaskGetTickCount();
-    finish_time = var;
+    
+    time = xTaskGetTickCount();
+    finish_time = time;
     print_mqtt(STOP, "%d", finish_time);
     elapsed_time = finish_time - start_time;
     print_mqtt(TIME, "%d", elapsed_time);
