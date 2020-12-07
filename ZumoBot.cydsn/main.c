@@ -41,7 +41,7 @@
 //Function for robot project sumo wrestling
 void zmain(void)
 {
-    
+    sumo_wrestling();
 }
 #endif
 
