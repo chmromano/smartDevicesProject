@@ -14,21 +14,21 @@
 
 
 //Sumo wrestling
-#if 0
+
 #define READY "Zumo03/ready"
 #define START "Zumo03/start"
 #define OBSTACLE "Zumo03/obstacle"
-#define TURN "Zumo03/turn"
 #define STOP "Zumo03/stop"
 #define TIME "Zumo03/time"
 
-void zmain(void)
+void sumo_wrestling(void)
 {
     struct sensors_ dig;
     int count = 0;
     int line = 0;
     int stop = 1;
     int startTime=0, stopTime=0;
+    bool button = false;
     
 
     reflectance_set_threshold(9000, 9000, 11000, 11000, 9000, 9000);
@@ -92,7 +92,7 @@ void zmain(void)
     
 }
     
-    while (true)
+    while (!button)
     {
         int n = rand() % 91 + 90;     //generate ramdom numbers between 90-180
         int c = rand() % 2;           //generate ramdom numbers between 0-1
@@ -107,11 +107,9 @@ void zmain(void)
             motor_littleback();
             if (c==0){
                 SetMotors(0, 1, 25, 25, n * 11.6);  // if random number c is 0 motor trun right between random 90-180 degrees
-                print_mqtt(TURN,"%d degrees right",n); // print random turn's direction and angle
             }
             else{
                 SetMotors(1, 0, 25, 25, n * 11.6);   // if random number c is 1 motor trun left between random 90-180 degrees
-                print_mqtt(TURN,"%d degrees left",n);
             }
             motor_forward(100,0);
         }
@@ -128,7 +126,10 @@ void zmain(void)
             }
             motor_forward(100,0);
         }
-        if(SW1_Read()==0)break;   //break the while(ture) loop when user button is pressed
+        if(SW1_Read()==0)//break the while loop when user button is pressed
+        {
+            button = true;
+        }
         
     }
     motor_stop();          //motor stop
@@ -144,7 +145,7 @@ void zmain(void)
     
 }
     
-#endif
+
 //week 4 assigment 2
 #if 0
 void zmain(void)
