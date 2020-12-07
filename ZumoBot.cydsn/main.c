@@ -53,7 +53,7 @@ void zmain (void)
 }
 #endif    
 
-#if 0
+#if 1
 //Function for robot project maze solving
 void zmain(void)
 {

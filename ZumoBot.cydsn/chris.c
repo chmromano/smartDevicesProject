@@ -39,12 +39,13 @@ int maze_right_turn(int speed)
     reflectance_set_threshold(11000, 11000, 11000, 11000, 11000, 11000);
     reflectance_digital(&dig);
     
+    //First loop condition, turn until none of the below sensors are on the line
     while(dig.L3 == 1 || dig.L2 == 1 || dig.L1 == 1 || dig.R1 == 1)
     {
         reflectance_digital(&dig);
         SetMotors(0, 1, speed, speed, 0);
     }
-    
+    //Keep turning until middle sensors are on the line
     while(dig.L1 != 1 || dig.R1 != 1)
     {
         reflectance_digital(&dig);
@@ -61,12 +62,13 @@ int maze_left_turn(int speed)
     reflectance_set_threshold(11000, 11000, 11000, 11000, 11000, 11000);
     reflectance_digital(&dig);
     
+    //First loop condition, turn until none of the below sensors are on the line
     while( dig.L1 == 1 || dig.R1 == 1 || dig.R2 == 1 || dig.R3 == 1)
     {
         reflectance_digital(&dig);
         SetMotors(1, 0, speed, speed, 0);
     }
-    
+    //Keep turning until middle sensors are on the line
     while(dig.L1 != 1 || dig.R1 != 1)
     {
         reflectance_digital(&dig);
@@ -86,20 +88,26 @@ int ready_maze(void)
     
     motor_forward(SPEED,0);
     
+    //Keep moving until you encounter black line, then keep moving until you are out of black line
     while(moving)
     {
         reflectance_digital(&dig);
         if(dig.L3 == 1 && dig.L2 == 1 && dig.L1 == 1 && dig.R1 == 1 && dig.R2 == 1 && dig.R3 == 1)
         {
+            while(dig.L3 == 1 && dig.L2 == 1 && dig.L1 == 1 && dig.R1 == 1 && dig.R2 == 1 && dig.R3 == 1)
+            {
+                reflectance_digital(&dig);
+            }
             moving = false;
         }
     }
-    
+     //Stop
     motor_forward(0,0);
     
     return 0;
 }
-//Function to move to maze (avoids printing coordinates for first line(0,-1))
+
+/*Function to move to maze (avoids printing coordinates for first line(0,-1))
 int start_maze(void)
 {
     struct sensors_ dig;
@@ -109,6 +117,7 @@ int start_maze(void)
     
     motor_forward(SPEED,0);
 
+    //Loop until you find middle line
     while(moving == true)
     {
         reflectance_digital(&dig);
@@ -120,6 +129,7 @@ int start_maze(void)
     
     return 0;
 }
+*/
 
 //Function with motor delay to center robot at intersections
 int center_intersection(int speed)
@@ -136,15 +146,14 @@ void robot_project_maze(void){
     
     //Defining necessary variables
     int orientation = 1;
-    //Orientations; 0 = east, 1 = north, 2 = west, 3 = south
-    //Init orientation = 1 = north
+    //Orientations; 0 = east, 1 = north, 2 = west, 3 = south not needed
+    //Initial orientation = 1 = north
     int distance;
-    int start_time;
-    int finish_time;
-    int elapsed_time;
+    TickType_t start_time;
+    TickType_t finish_time;
+    TickType_t elapsed_time;
     int position[2] = {0, 0};
     bool maze_not_finished = true;
-    TickType_t time;
     
     //Starting necessary devices and setting reflectance threshold
     motor_start();
@@ -168,10 +177,9 @@ void robot_project_maze(void){
     
     //Robot waits for IR signal, prints START to mqtt and then starts moving
     IR_wait();
-    time = xTaskGetTickCount();
-    start_time = time;
+    start_time = xTaskGetTickCount();
     print_mqtt(START, "%d", start_time);
-    start_maze();
+    motor_forward(SPEED,0);
     
     //Loop  for the maze solving algorithm
     while(maze_not_finished)
@@ -183,24 +191,30 @@ void robot_project_maze(void){
         //Conditional for finish line
         if(position[0] == 0 && position[1] == 14)
         {
+            //Loop condition
             while(dig.L1 == 1 || dig.R1 == 1)
             {
+                //Update reflectance
                 reflectance_digital(&dig);
                 
+                //Go straight
                 if(dig.L3 == 0 && dig.L2 == 0 && dig.L1 == 1 && dig.R1 == 1 && dig.R2 == 0 && dig.R3 == 0)
                 {
                     motor_forward(SPEED,0);
                 }
+                //Turn left if straying right
                 else if(dig.L1 == 1 && dig.R1 == 0)
                 {
                     motor_turn(0,SPEED,0);
                 }
+                //Turn right if straying left
                 else if(dig.L1 == 0 && dig.R1 == 1)
                 {
                     motor_turn(SPEED,0,0);
                 }
             }
             
+            //If while loop ends motors are stopped, and maze solving algorithm loop is ended
             motor_forward(0, 0);
             maze_not_finished = false;
         }
@@ -224,138 +238,162 @@ void robot_project_maze(void){
         {
             print_mqtt(POSITION, "%d %d", position[0], position[1]);
             
-            //If orientation is north and obstacle is present
-            if(orientation == 1 && distance <= AVOID)
+            //If orientation is north
+            if(orientation == 1)
             {
-                center_intersection(SPEED);
-                //Depending on robot coordinates turn left or right
-                if(position[0] < 0)
+                //If obstacle is present
+                if(distance <= AVOID)
                 {
-                    maze_right_turn(SPEED);
-                    
-                    //Check for obstacle after turn left or right
-                    distance = Ultra_GetDistance();
-                    //If obstacle is present do 180 degree turn left and update orientation to west
-                    if(distance <= AVOID)
+                    center_intersection(SPEED);
+                    //Depending on robot coordinates turn left or right
+                    //(at x = 0 it is arbitrary, for anything else 
+                    //logically i would think that if you're close
+                    //to the edge you would want to turn the other way)
+                    if(position[0] <= 0)
+                    {
+                        maze_right_turn(SPEED);
+                        
+                        //Check for obstacle after turn
+                        distance = Ultra_GetDistance();
+                        //If obstacle is present do 180 degree turn left and update orientation to west
+                        if(distance <= AVOID)
+                        {
+                            maze_left_turn(SPEED);
+                            maze_left_turn(SPEED);
+                            orientation = 2;
+                        }
+                        //Else update orientation to east
+                        else
+                        {
+                            orientation = 0;
+                        }
+                    }
+                    else if(position[0] > 0)
                     {
                         maze_left_turn(SPEED);
+                        
+                        //Check for obstacle after turn
+                        distance = Ultra_GetDistance();
+                        //If obstacle is present do 180 degree turn right and update orientation to east
+                        if(distance <= AVOID)
+                        {
+                            maze_right_turn(SPEED);
+                            maze_right_turn(SPEED);
+                            orientation = 0;
+                        }
+                        //Else update orientation to west
+                        else
+                        {
+                            orientation = 2;
+                        }
+                    }
+                }
+                //If robot has reached line 11
+                else if(position[1] >= 11)
+                {
+                    //If robot position is x > 0
+                    if(position[0] > 0)
+                    {
+                        //Turn left and update orientation to west
+                        center_intersection(SPEED);
                         maze_left_turn(SPEED);
                         orientation = 2;
                     }
-                    //Else update orientation to east
-                    else
+                    //If robot position is x < 0
+                    else if(position[0] < 0)
                     {
-                        orientation = 0;
-                    }
-                }
-                else if(position[0] >= 0)
-                {
-                    maze_left_turn(SPEED);
-                    
-                    //Check for obstacle after turn
-                    distance = Ultra_GetDistance();
-                    //If obstacle is present do 180 degree turn right and update orientation to east
-                    if(distance <= AVOID)
-                    {
-                        maze_right_turn(SPEED);
+                        //Turn right and update orientation to east
+                        center_intersection(SPEED);
                         maze_right_turn(SPEED);
                         orientation = 0;
                     }
-                    //Else update orientation to west
-                    else
-                    {
-                        orientation = 2;
-                    }
                 }
             }
-            
-            
-            
-            else if(orientation == 1 && position[0] > 0 && position[1] >= 11)
-            {
-                center_intersection(SPEED);
-                maze_left_turn(SPEED);
-                if(orientation == 3)
-                {
-                    orientation = 0;
-                }
-                else
-                {
-                    orientation++;
-                }
-            }
-            else if(orientation == 1 && position[0] < 0 && position[1] >= 11)
-            {
-                center_intersection(SPEED);
-                maze_right_turn(SPEED);
-                if(orientation == 0)
-                {
-                    orientation = 3;
-                }
-                else
-                {
-                    orientation--;
-                }
-            }
-            
-            
             //Else if orientation is east
             else if(orientation == 0)
             {
-                center_intersection(SPEED);
-                
-                //Turn left
-                maze_left_turn(SPEED);
-                
-                //Check for obstacle
-                distance = Ultra_GetDistance();
-                //If there is obstacle and position is at right edge, turn left
-                //and update orientation to west
-                if(distance <= AVOID && position[0] == 3)
+                //If robot has reached line 11 and is on x = 0
+                if(position[1] >= 11 && position[0] == 0)
                 {
+                    center_intersection(SPEED);
+                    
+                    //Turn right
                     maze_left_turn(SPEED);
-                    orientation = 2;
-                }
-                //Else if there is obstacles turn right
-                else if(distance <= AVOID)
-                {
-                    maze_right_turn(SPEED);
-                }
-                //Else update orientation to north
-                else
-                {
+                    //Update orientation to north
                     orientation = 1;
                 }
+                //If robot has not reached line 11
+                else if(position[1] < 11)
+                {
+                    center_intersection(SPEED);
+                    
+                    //Turn left
+                    maze_left_turn(SPEED);
+                    
+                    //Check for obstacle
+                    distance = Ultra_GetDistance();
+                    //If there is obstacle and position is at right edge, turn left
+                    //and update orientation to west
+                    if(distance <= AVOID && position[0] == 3)
+                    {
+                        maze_left_turn(SPEED);
+                        orientation = 2;
+                    }
+                    //Else if there is obstacles turn right
+                    else if(distance <= AVOID)
+                    {
+                        maze_right_turn(SPEED);
+                    }
+                    //Else update orientation to north
+                    else
+                    {
+                        orientation = 1;
+                    }
+                }
+
             }
             //Else if orientatio is west
             else if(orientation == 2)
             {
-                center_intersection(SPEED);
-                
-                //Turn right
-                maze_right_turn(SPEED);
-                
-                //Check for obstacle
-                distance = Ultra_GetDistance();
-                //If there is obstacle and position is at left edge, turn right
-                //and update orientation to east
-                if(distance <= AVOID && position[0] == -3)
+                //If robot has reached line 11 and is on x = 0
+                if(position[1] >= 11 && position[0] == 0)
                 {
+                    center_intersection(SPEED);
+                    
+                    //Turn left
                     maze_right_turn(SPEED);
-                    orientation = 0;
-                }
-                //Else if there is obstacles turn left
-                else if(distance <= AVOID)
-                {
-                    maze_left_turn(SPEED);
-                }
-                //Else update orientation to north
-                else
-                {
+                    //Update orientation to north
                     orientation = 1;
                 }
+                //If robot has not reached line 11
+                else if(position[1] < 11)
+                {
+                    center_intersection(SPEED);
+                    
+                    //Turn right
+                    maze_right_turn(SPEED);
+                    
+                    //Check for obstacle
+                    distance = Ultra_GetDistance();
+                    //If there is obstacle and position is at left edge, turn right
+                    //and update orientation to east
+                    if(distance <= AVOID && position[0] == -3)
+                    {
+                        maze_right_turn(SPEED);
+                        orientation = 0;
+                    }
+                    //Else if there is obstacles turn left
+                    else if(distance <= AVOID)
+                    {
+                        maze_left_turn(SPEED);
+                    }
+                    //Else update orientation to north
+                    else
+                    {
+                        orientation = 1;
+                    }
+                }
             }
-            //
 
 
             
@@ -386,18 +424,22 @@ void robot_project_maze(void){
         }
     }
     
-    
-    time = xTaskGetTickCount();
-    finish_time = time;
+    //Calculate and print finish time to mqtt
+    finish_time = xTaskGetTickCount();
     print_mqtt(STOP, "%d", finish_time);
+    //Calculate and print elapsed time
     elapsed_time = finish_time - start_time;
     print_mqtt(TIME, "%d", elapsed_time);
     
+    //Prevents zmain from ending
     while(true)
     {
         vTaskDelay(100);
     }
 }
+
+
+
 
 
 
@@ -424,113 +466,10 @@ void left_turn(int radius){
     motor_turn(15, 50, delay_value);
 }
 
-#if 0
-//function to test things
-void zmain(void)
-{
-    #define READY "Zumo03/ready"
-    #define START "Zumo03/start"
-    #define POSITION "Zumo03/position"
-    #define SPEED 25
-    
-    //Defining necessary variables
-    struct sensors_ dig;
-    int start = 1;
-    int mid = 1;
-    //Orientations; 0 = east, 1 = north, 2 = west, 3 = south
-    //Init orientation = 1 = north
-    int orientation = 1;
-    int distance;
-    int position[2] = {0, 0};
-    TickType_t var = xTaskGetTickCount();
-    
-    //Starting necessary devices
-    motor_start();
-    Ultra_Start();
-    reflectance_start();
-    IR_Start();
-    motor_forward(0,0);
-    reflectance_set_threshold(11000, 11000, 11000, 11000, 11000, 11000);
-    
-    vTaskDelay(100);
-    
-    //Wait for button press to start program
-    while(SW1_Read());
-    BatteryLed_Write(1);
-    vTaskDelay(500);
-    BatteryLed_Write(0);
-    
-    //Robot moves forward until the first line
-    motor_forward(SPEED,0);
-    while(start == 1)
-    {
-        reflectance_digital(&dig);
-        if(dig.L3 == 1 && dig.L2 == 1 && dig.L1 == 1 && dig.R1 == 1 && dig.R2 == 1 && dig.R3 == 1 && start == 1)
-        {
-            motor_forward(0,0);
-            start = 0;
-            print_mqtt(READY, "maze");
-        }
-    }
-    //Robot waits for IR signal then start moving
-    IR_wait();
-    var = xTaskGetTickCount();
-    print_mqtt(START, "%d", var);
-    motor_forward(SPEED,0);
-
-    while(mid == 1)
-    {
-        reflectance_digital(&dig);
-        if(dig.L3 == 0 && dig.L2 == 0 && dig.L1 == 1 && dig.R1 == 1 && dig.R2 == 0 && dig.R3 == 0)
-        {
-            mid = 0;
-        }
-    }
-    
-    while(true){
-        
-        distance = Ultra_GetDistance();
-        reflectance_digital(&dig);
-
-        if((dig.R1 == 1 && dig.R2 == 1 && dig.R3 == 1) || (dig.L1 == 1 && dig.L2 == 1 && dig.L3 == 1))
-        {
-            motor_forward(SPEED, 900);
-            while(dig.L3 == 1 || dig.L2 == 1 || dig.L1 == 1 || dig.R1 == 1)
-            {
-                reflectance_digital(&dig);
-                SetMotors(0,1, SPEED, SPEED, 0);
-            }
-            
-            while(dig.L1 != 1 || dig.R1 != 1)
-            {
-                reflectance_digital(&dig);
-                SetMotors(0,1, SPEED, SPEED, 0);
-            }
-            
-            motor_forward(0,0);
-        }
-    }   
-}
-#endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-#if 0
 //Function for week 5 assignment 3
+#define TOPIC53 "Zumo03/Chris/Lap"
 
-#define TOPIC "Zumo03/Chris/Lap"
-
-void zmain(void){
+void week5assignmnent3_chris(void){
     
     //Defining necessary variables
     struct sensors_ dig;
@@ -588,7 +527,7 @@ void zmain(void){
             motor_stop();
             finish_time = var;
             elapsed_time = finish_time - start_time;
-            print_mqtt(TOPIC, "Elapsed time: %d ms", elapsed_time);
+            print_mqtt(TOPIC53, "Elapsed time: %d ms", elapsed_time);
         }
     }
     
@@ -596,16 +535,12 @@ void zmain(void){
         vTaskDelay(100); // sleep (in an infinite loop)
     }
 }
-#endif
 
 
 
-#if 0
 //Function for week 5 assignment 2
-    
-#define TURN "Zumo03/Chris/Turn"
-    
-void zmain(void)
+#define TURN52 "Zumo03/Chris/Turn"
+void week3assignment3_chris(void)
 {
     //Starting motor and ultrasonic sensor
     motor_start();
@@ -627,27 +562,22 @@ void zmain(void)
             srand(xTaskGetTickCount());
             int n = rand() % 2;
             if (n==0) {
-                print_mqtt(TURN, "Left");
+                print_mqtt(TURN52, "Left");
                 SetMotors(1,0, 25, 25, 1050);
             }else{
-                print_mqtt(TURN, "Right");
+                print_mqtt(TURN52, "Right");
                 SetMotors(0,1, 25, 25, 1050);
             }
         }
     }
 }
-#endif
 
 
-
-#if 0
 //Function for assignment 1 week 5
 //SW1_Read() = 1 when button not pressed
 //SW1_Read() = 0 when button is pressed
-
-#define TOPIC "Zumo03/Chris/Button"
-
-void zmain(void){
+#define TOPIC15 "Zumo03/Chris/Button"
+void assignment1week5_chris(void){
     
     TickType_t var = xTaskGetTickCount();
     int first_press = 0, last_press = 0, time;
@@ -657,22 +587,18 @@ void zmain(void){
         if(SW1_Read() == 0){
             last_press = var;
             time = last_press - first_press;
-            print_mqtt(TOPIC, "Elapsed time: %d ms", time);
+            print_mqtt(TOPIC15, "Elapsed time: %d ms", time);
             first_press = last_press;
             while(SW1_Read() == 0);
         }
     }
 }
-#endif
 
 
 
-#if 0
-//Function for  assignment 2 week 4
-    
-#define STOP 2
 
-void zmain(void){
+//Function for  assignment 2 week 4    
+void assignment2week4_chris(void){
     
     //Defining necessary variables
     struct sensors_ dig;
@@ -708,7 +634,7 @@ void zmain(void){
     motor_forward(100,0);
     
     //Simple line following algorithm using only central sensors
-    while(count < STOP){
+    while(count < 2){
         reflectance_digital(&dig);
         if(dig.L3 == 0 && dig.L2 == 0 && dig.L1 == 1 && dig.R1 == 1 && dig.R2 == 0 && dig.R3 == 0){
             motor_forward(100,0);
@@ -720,7 +646,7 @@ void zmain(void){
         
         if(dig.L3 == 1 && dig.L2 == 1 && dig.L1 == 1 && dig.R1 == 1 && dig.R2 == 1 && dig.R3 == 1){
             count++;
-            while((dig.R1 == 1 && dig.R2 == 1 && dig.R3 == 1 && dig.L1 == 1 && dig.L2 == 1 && dig.L3 == 1) && count < STOP){
+            while((dig.R1 == 1 && dig.R2 == 1 && dig.R3 == 1 && dig.L1 == 1 && dig.L2 == 1 && dig.L3 == 1) && count < 2){
                 reflectance_digital(&dig);
             }
         }
@@ -734,14 +660,10 @@ void zmain(void){
         vTaskDelay(100); // sleep (in an infinite loop)
     }
 }
-#endif
 
-#if 0
-//Prototype function for  project 2 (line following)
-    
-#define STOP 3
-
-void zmain(void){
+//Prototype function for  project 2 (line following)  
+void line_following_prototype(void)
+{
     
     //Defining necessary variables
     struct sensors_ dig;
@@ -777,7 +699,7 @@ void zmain(void){
     motor_forward(100,0);
     
     //Simple line following algorithm using only central sensors
-    while(count < STOP){
+    while(count < 3){
         reflectance_digital(&dig);
         if((dig.L3 == 0 && dig.L2 == 0 && dig.L1 == 1 && dig.R1 == 1 && dig.R2 == 0 && dig.R3 == 0) || (dig.L3 == 1 && dig.L2 == 1 && dig.L1 == 1 && dig.R1 == 1 && dig.R2 == 1 && dig.R3 == 1)){
             motor_forward(100,0);
@@ -795,7 +717,7 @@ void zmain(void){
         
         if(dig.L3 == 1 && dig.L2 == 1 && dig.L1 == 1 && dig.R1 == 1 && dig.R2 == 1 && dig.R3 == 1){
             count++;
-            while((dig.R1 == 1 && dig.R2 == 1 && dig.R3 == 1 && dig.L1 == 1 && dig.L2 == 1 && dig.L3 == 1) && count < STOP){
+            while((dig.R1 == 1 && dig.R2 == 1 && dig.R3 == 1 && dig.L1 == 1 && dig.L2 == 1 && dig.L3 == 1) && count < 3){
                 reflectance_digital(&dig);
             }
         }
@@ -809,14 +731,9 @@ void zmain(void){
         vTaskDelay(100); // sleep (in an infinite loop)
     }
 }
-#endif
 
-#if 0
 //Function for week 4 assignment 1
-
-#define STOP 5
-
-void zmain(void){
+void week4assignment1_chris(void){
     
     //Defining necessary variables
     struct sensors_ dig;
@@ -852,7 +769,7 @@ void zmain(void){
     motor_forward(25,0);
     
     //Robot counts lines until it has to stop
-    while(count < STOP){
+    while(count < 5){
         reflectance_digital(&dig);
         if(dig.L3 == 1 && dig.L2 == 1 && dig.L1 == 1 && dig.R1 == 1 && dig.R2 == 1 && dig.R3 == 1){
             count++;
@@ -870,11 +787,10 @@ void zmain(void){
         vTaskDelay(100); // sleep (in an infinite loop)
     }
 }
-#endif
 
-#if 0
+
 //Function for week 3 assignment 2
-void zmain(void)
+void week3assignment2_chris(void)
 {
     //Starting motor and ultrasonic sensor
     motor_start();
@@ -899,15 +815,5 @@ void zmain(void)
         }
     }
 }
-#endif
 
-#if 0
-void zmain(void){
-    motor_stop();
-    while(true)
-    {
-        vTaskDelay(100);
-    }
-}
-#endif
 /* [] END OF FILE */
