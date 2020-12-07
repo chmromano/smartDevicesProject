@@ -47,6 +47,7 @@ void motor_littleback();
 void tank_randomturn();
 // tank moving foward at speed of 50
 void motor_forward50();
+void sumo_wrestling(void);
 
 
 /* [] END OF FILE */
