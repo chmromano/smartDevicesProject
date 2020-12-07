@@ -35,4 +35,7 @@ void senor_robot_straight_map(void);
 #endif
 */
 
+//Robot following line project
+void robot_following_line();
+
 /* [] END OF FILE */

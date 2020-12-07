@@ -11,11 +11,11 @@
 */
 #include "giang.h"
 
-#if 0
-    
+
 // Line follower
 // Apply codes from assignmnet 2 week 4 line following and adjust with more conditions
 // Bonus off track is made by adjust the reflectance threshold and motor turn variables
+// All the printf are to check of the codes work and they are all inactive
 
 #define READY "Zumo03/ready"
 #define START "Zumo03/start"
@@ -26,25 +26,23 @@
 
 #define STOPP 3
 
-void zmain(void)
+void robot_following_line (void)
 {
-    struct sensors_ dig;             //call function sensor
-    
-    reflectance_set_threshold(15000, 12000, 12000, 12000, 12000, 15000);       //set sensor threshold all to 10000
-    
-    reflectance_start();            //start reflectance sensor
-    IR_Start();                     //start IR receiver
-        
-    int slow_speed = 70;
-    int max_speed = 250;
-    int fast_turn_speed_1 = 120;
-    int fast_turn_speed_2 = 60;
-    int slow_turn_speed_1 = 50;
+    struct sensors_ dig;
+    reflectance_set_threshold(15000, 12000, 12000, 12000, 12000, 15000);
+    reflectance_start();
+    IR_Start();
+                                                  
+    int slow_speed = 70;                    
+    int max_speed = 250;                    
+    int fast_turn_speed_1 = 120;           
+    int fast_turn_speed_2 = 60;           
+    int slow_turn_speed_1 = 50;                    
     int slow_turn_speed_2 = 10;
     int reverse_speed = 250;
-    bool reverse = false;
-    bool race = false;
-    bool finish = false;
+    bool reverse = false;                       //miss line, robot reverse
+    bool race = false;                          //robot is racing
+    bool finish = false;                        //robot at the 2nd finished line
     
     TickType_t start_time = xTaskGetTickCount();
     TickType_t stop_time = xTaskGetTickCount();
@@ -61,17 +59,15 @@ void zmain(void)
         motor_start();                  
         motor_forward(0,0);             
     
-        printf("Press to go to start line\n");
-        while(SW1_Read() == 1)                  //button not pressed
+        //Press button for robot to move to start line
+        while(SW1_Read() == 1)
         {
             vTaskDelay(10);
         }
         BatteryLed_Write(1);            
         BatteryLed_Write(0);            
-        
-        
         reflectance_digital(&dig);      
-        motor_forward(slow_speed,0);            //Moving forward
+        motor_forward(slow_speed,0);
         
         //loop until line counting = numbers of stop
         //follow the line when 2 inside sensor on black area 
@@ -91,7 +87,7 @@ void zmain(void)
                 count++;
                 //printf("count: %d\n", count);
                 
-                //for robot moves to first line and wait for button pressed
+                //robot at start line and wait for IR signal to start racing
                 if (count == 1)
                 {
                     motor_forward(0,0);
@@ -99,10 +95,7 @@ void zmain(void)
                     {
                         print_mqtt(READY, "line");
                     }
-                    while(SW1_Read() == 1)          
-                    {
-                        vTaskDelay(10);
-                    }
+                    IR_wait();
                     race = true;
                     motor_forward(max_speed,0);
                     print_mqtt(START, "%d", start_time);
@@ -193,12 +186,21 @@ void zmain(void)
         print_mqtt(TIME, "%d", total_time);
         //printf("%d.%d\n", total_time/1000, total_time%1000);
         finish = true;
-        
+    }
+    while(true)
+    {
         vTaskDelay(100);
     }
 }
 
-#endif
+
+
+
+
+
+
+
+
 
 #if 0
    
