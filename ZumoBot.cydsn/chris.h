@@ -33,17 +33,20 @@
 
 
 void robot_project_maze(void);
-int maze_right_turn(int speed);
-int maze_left_turn(int speed);
-int ready_maze(void);
+void maze_right_turn(int speed);
+void maze_left_turn(int speed);
+void ready_maze(void);
+void update_coordinates(int orientation, int *p_x, int *p_y);
+void center_intersection(int speed);
 
 
 
+//motor_turn(50, 15, 5986); gives a roughly 360 degree turn
 //Premade function for a right turn with radius as parameter
 void right_turn(int radius);
 //Premade function for a left turn with radius as parameter
 void left_turn(int radius);
-int center_intersection(int speed);
+
 void week3assignment2_chris(void);
 void week4assignment1_chris(void);
 void line_following_prototype(void);

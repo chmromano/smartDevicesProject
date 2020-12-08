@@ -14,8 +14,6 @@
 
 GENERAL INFORMATION AND DOCUMENTATION
 
-motor_turn(50, 15, 5986); gives a roughly 360 degree turn
-
 ==========================================*/
 #include "chris.h"
 #include "alex.h"
@@ -29,11 +27,12 @@ motor_turn(50, 15, 5986); gives a roughly 360 degree turn
 #define STOP "Zumo03/stop"
 #define TIME "Zumo03/time"
 #define POSITION "Zumo03/position"
-#define SPEED 75
+//SPEED 50 is tested, 75 should work too, above may or may not work
+#define SPEED 50
 #define AVOID 13
 
 //Function for 90 degree right turns
-int maze_right_turn(int speed)
+void maze_right_turn(int speed)
 {
     struct sensors_ dig;
     reflectance_set_threshold(11000, 11000, 11000, 11000, 11000, 11000);
@@ -51,12 +50,10 @@ int maze_right_turn(int speed)
         reflectance_digital(&dig);
         SetMotors(0, 1, speed, speed, 0);
     }
-    
-    return 0;
 }
 
 //Function for 90 degree left turns
-int maze_left_turn(int speed)
+void maze_left_turn(int speed)
 {
     struct sensors_ dig;
     reflectance_set_threshold(11000, 11000, 11000, 11000, 11000, 11000);
@@ -74,12 +71,10 @@ int maze_left_turn(int speed)
         reflectance_digital(&dig);
         SetMotors(1, 0, speed, speed, 0);
     }
-    
-    return 0;
 }
 
 //Function to move to first start line
-int ready_maze(void)
+void ready_maze(void)
 {
     struct sensors_ dig;
     bool moving = true;
@@ -103,8 +98,6 @@ int ready_maze(void)
     }
      //Stop
     motor_forward(0,0);
-    
-    return 0;
 }
 
 /*Function to move to maze (avoids printing coordinates for first line(0,-1))
@@ -132,10 +125,27 @@ int start_maze(void)
 */
 
 //Function with motor delay to center robot at intersections
-int center_intersection(int speed)
+void center_intersection(int speed)
 {
+    //Custom delay changes based on speed,
+    //the bigger the speed the shorter the delay
     motor_forward(speed, 22500/speed);
-    return 0;
+}
+
+void update_coordinates(int orientation, int *p_x, int *p_y)
+{
+        if(orientation == 0)
+        {
+            *p_x = *p_x + 1;
+        }
+        else if(orientation == 1)
+        {
+            *p_y = *p_y + 1;
+        }
+        else if(orientation == 2)
+        {
+            *p_x = *p_x - 1;
+        }
 }
 
 //Function for maze solving project
@@ -249,7 +259,7 @@ void robot_project_maze(void){
                     //(at x = 0 it is arbitrary, for anything else 
                     //logically i would think that if you're close
                     //to the edge you would want to turn the other way)
-                    if(position[0] <= 0)
+                    if(position[0] < 0)
                     {
                         maze_right_turn(SPEED);
                         
@@ -268,7 +278,7 @@ void robot_project_maze(void){
                             orientation = 0;
                         }
                     }
-                    else if(position[0] > 0)
+                    else if(position[0] >= 0)
                     {
                         maze_left_turn(SPEED);
                         
@@ -394,26 +404,8 @@ void robot_project_maze(void){
                     }
                 }
             }
-
-
             
-
-            if(orientation == 0)
-            {
-                position[0]++;
-            }
-            else if(orientation == 1)
-            {
-                position[1]++;
-            }
-            else if(orientation == 2)
-            {
-                position[0]--;
-            }
-            else if(orientation == 3)
-            {
-                position[1]--;
-            }
+            update_coordinates(orientation, &position[0], &position[1]);
             
             //This lets the while loop run just once per intersection
             //(otherwise it would constantly try to update)
