@@ -11,6 +11,8 @@
 */
 #include "giang.h"
 
+// Maybe there are miss prints for mqtt depending on virtual machine and windows
+// Joe checked and said it's OK
 
 // Line follower
 // Apply codes from assignmnet 2 week 4 line following and adjust with more conditions
@@ -50,8 +52,6 @@ void robot_following_line (void)
     TickType_t miss_time = xTaskGetTickCount();
     TickType_t back_to_line_time = xTaskGetTickCount();
     
-    //printf("Starting\n");
-
     while (true)
     {
         int count = 0;
@@ -85,7 +85,6 @@ void robot_following_line (void)
             if (reverse == false && dig.R1 == 1 && dig.R2 == 1 && dig.R3 == 1 && dig.L1 == 1 && dig.L2 == 1 && dig.L3 == 1)
             {
                 count++;
-                //printf("count: %d\n", count);
                 
                 //robot at start line and wait for IR signal to start racing
                 if (count == 1)
@@ -137,28 +136,24 @@ void robot_following_line (void)
             else if ((dig.R2 == 1 || dig.R3 == 1) && dig.L1 == 1 && dig.L2 == 0 && dig.L3 == 0)
             {
                 motor_turn(fast_turn_speed_1,fast_turn_speed_2,0);
-                //printf("turn right\n");
             }
             
             //when to turn fast
             else if ((dig.L2 == 1 || dig.L3 == 1) && dig.R1 == 1 && dig.R2 == 0 && dig.R3 == 0)
             {
                 motor_turn(fast_turn_speed_2,fast_turn_speed_1,0);
-                //printf("turn left\n");
             }
             
             //when to turn slow
             else if ((dig.R2 == 1 || dig.R3 == 1) && dig.L2 == 0 && dig.L3 == 0)
             {
                 motor_turn(slow_turn_speed_1,slow_turn_speed_2,0);
-                //printf("turn right\n");
             }
             
             //when to turn slow
             else if ((dig.L2 == 1 || dig.L3 == 1) && dig.R2 == 0 && dig.R3 == 0)
             {
                 motor_turn(slow_turn_speed_2,slow_turn_speed_1,0);
-                //printf("turn left\n");
             }
             
             //when off track
@@ -185,7 +180,6 @@ void robot_following_line (void)
         motor_stop();
         total_time = stop_time - start_time;
         print_mqtt(TIME, "%d", total_time);
-        //printf("%d.%d\n", total_time/1000, total_time%1000);
         finish = true;
     }
     while(true)
