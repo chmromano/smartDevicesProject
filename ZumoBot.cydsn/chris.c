@@ -100,30 +100,6 @@ void ready_maze(void)
     motor_forward(0,0);
 }
 
-/*Function to move to maze (avoids printing coordinates for first line(0,-1))
-int start_maze(void)
-{
-    struct sensors_ dig;
-    bool moving = true;
-    reflectance_set_threshold(11000, 11000, 11000, 11000, 11000, 11000);
-    reflectance_digital(&dig);
-    
-    motor_forward(SPEED,0);
-
-    //Loop until you find middle line
-    while(moving == true)
-    {
-        reflectance_digital(&dig);
-        if(dig.L3 == 0 && dig.L2 == 0 && dig.L1 == 1 && dig.R1 == 1 && dig.R2 == 0 && dig.R3 == 0)
-        {
-            moving = false;
-        }
-    }
-    
-    return 0;
-}
-*/
-
 //Function with motor delay to center robot at intersections
 void center_intersection(int speed)
 {
@@ -132,6 +108,7 @@ void center_intersection(int speed)
     motor_forward(speed, 22500/speed);
 }
 
+//Function to update the coordinates of the robot
 void update_coordinates(int orientation, int *p_x, int *p_y)
 {
         if(orientation == 0)
