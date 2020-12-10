@@ -97,7 +97,7 @@ void sumo_wrestling(void)
         int n = rand() % 91 + 90;     //generate ramdom numbers between 90-180
         int c = rand() % 2;           //generate ramdom numbers between 0-1
         int d = Ultra_GetDistance();
-        if (d > 1)                    //motor move forward when distance between obstacle or boundary is great than 1
+        if (d > 5)                    //motor move forward when distance between obstacle or boundary is great than 1
         {
             motor_forward(100,0);
         }
