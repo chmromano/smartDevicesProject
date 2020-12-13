@@ -35,7 +35,7 @@
 void robot_project_maze(void);
 void maze_right_turn(int speed);
 void maze_left_turn(int speed);
-void ready_maze(void);
+void ready_maze(int speed);
 void update_coordinates(int orientation, int *p_x, int *p_y);
 void center_intersection(int speed);
 

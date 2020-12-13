@@ -74,14 +74,14 @@ void maze_left_turn(int speed)
 }
 
 //Function to move to first start line
-void ready_maze(void)
+void ready_maze(int speed)
 {
     struct sensors_ dig;
     bool moving = true;
     reflectance_set_threshold(11000, 11000, 11000, 11000, 11000, 11000);
     reflectance_digital(&dig);
     
-    motor_forward(SPEED,0);
+    motor_forward(speed, 0);
     
     //Keep moving until you encounter black line, then keep moving until you are out of black line
     while(moving)
@@ -97,7 +97,7 @@ void ready_maze(void)
         }
     }
      //Stop
-    motor_forward(0,0);
+    motor_forward(0, 0);
 }
 
 //Function with motor delay to center robot at intersections
@@ -159,7 +159,7 @@ void robot_project_maze(void){
     BatteryLed_Write(0);
     
     //Robot moves forward until the first line and prints READY to mqtt
-    ready_maze();
+    ready_maze(SPEED);
     print_mqtt(READY, "maze");
     
     //Robot waits for IR signal, prints START to mqtt and then starts moving
@@ -187,17 +187,17 @@ void robot_project_maze(void){
                 //Go straight
                 if(dig.L3 == 0 && dig.L2 == 0 && dig.L1 == 1 && dig.R1 == 1 && dig.R2 == 0 && dig.R3 == 0)
                 {
-                    motor_forward(SPEED,0);
+                    motor_forward(SPEED, 0);
                 }
                 //Turn left if straying right
                 else if(dig.L1 == 1 && dig.R1 == 0)
                 {
-                    motor_turn(0,SPEED,0);
+                    motor_turn(0, SPEED, 0);
                 }
                 //Turn right if straying left
                 else if(dig.L1 == 0 && dig.R1 == 1)
                 {
-                    motor_turn(SPEED,0,0);
+                    motor_turn(SPEED, 0, 0);
                 }
             }
             
@@ -208,17 +208,17 @@ void robot_project_maze(void){
         //Go straight
         else if(dig.L3 == 0 && dig.L2 == 0 && dig.L1 == 1 && dig.R1 == 1 && dig.R2 == 0 && dig.R3 == 0)
         {
-            motor_forward(SPEED,0);
+            motor_forward(SPEED, 0);
         }
         //Turn left if straying right
         else if(dig.L1 == 1 && dig.R1 == 0)
         {
-            motor_turn(0,SPEED,0);
+            motor_turn(0, SPEED, 0);
         }
         //Turn right if straying left
         else if(dig.L1 == 0 && dig.R1 == 1)
         {
-            motor_turn(SPEED,0,0);
+            motor_turn(SPEED, 0, 0);
         }
         //Conditional for intersections
         else if((dig.R1 == 1 && dig.R2 == 1 && dig.R3 == 1) || (dig.L1 == 1 && dig.L2 == 1 && dig.L3 == 1))
