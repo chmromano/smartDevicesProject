@@ -393,6 +393,7 @@ void robot_project_maze(void){
         }
     }
     
+    motor_stop();
     //Calculate and print finish time to mqtt
     finish_time = xTaskGetTickCount();
     print_mqtt(STOP, "%d", finish_time);
