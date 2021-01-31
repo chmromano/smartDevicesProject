@@ -10,6 +10,6 @@ In this C programming course we had to program a robot. For the final project we
 
 Code implemented by Christopher Romano: [ZumoBot.cydsn/chris.c](https://github.com/chmromano/smartDevicesProject/blob/master/ZumoBot.cydsn/chris.c)
 
-Code implemented by Giang Vu: ZumoBot.cydsn/giang.c
+Code implemented by Giang Vu: [ZumoBot.cydsn/giang.c](https://github.com/chmromano/smartDevicesProject/blob/master/ZumoBot.cydsn/giang.c)
 
-Code implemented by Xiaoming Ma: ZumoBot.cydsn/alex.c
+Code implemented by Xiaoming Ma: [ZumoBot.cydsn/alex.c](https://github.com/chmromano/smartDevicesProject/blob/master/ZumoBot.cydsn/alex.c)
