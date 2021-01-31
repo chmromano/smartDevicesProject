@@ -8,7 +8,7 @@ In this C programming course we had to program a robot. For the final project we
 
 3) Navigate a maze until the end (Christopher Romano)
 
-Code implemented by Christopher Romano: ZumoBot.cydsn/chris.c
+Code implemented by Christopher Romano: [ZumoBot.cydsn/chris.c](https://github.com/chmromano/smartDevicesProject/blob/master/ZumoBot.cydsn/chris.c)
 
 Code implemented by Giang Vu: ZumoBot.cydsn/giang.c
 
